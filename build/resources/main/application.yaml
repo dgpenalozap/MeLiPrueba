@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+# Product data configuration
+product:
+  data:
+    json-file: classpath:products.json
+
+# Jackson configuration for proper date/time serialization
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss

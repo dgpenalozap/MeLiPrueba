@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ProductController Complete Unit Tests" tests="17" skipped="0" failures="0" errors="0" timestamp="2025-10-15T16:19:43" hostname="DESKTOP-AK5M5IG" time="0.233">
+  <properties/>
+  <testcase name="sortByPrice with case variations should work" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.193"/>
+  <testcase name="sortByPrice ascending should return sorted products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.003"/>
+  <testcase name="findBySpecification should return matching products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="getProduct should return product by id" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.003"/>
+  <testcase name="compareProducts should return requested products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="sortByRating descending should return sorted products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="sortByRating ascending should return sorted products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="getAllCategories should return list of categories" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="filterByRating should return products above minimum rating" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.001"/>
+  <testcase name="listProducts should return empty list when no products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.001"/>
+  <testcase name="listProducts should return all products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.001"/>
+  <testcase name="filterByCategory should return products in category" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="getTopRatedProducts should return top N products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.001"/>
+  <testcase name="filterByPrice should return products in price range" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="searchProducts should return matching products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="getTopRatedProducts with default limit should work" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.002"/>
+  <testcase name="sortByPrice descending should return sorted products" classname="com.example.productcomparison.controller.ProductControllerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
