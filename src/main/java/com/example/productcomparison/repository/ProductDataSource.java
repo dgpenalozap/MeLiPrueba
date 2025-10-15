@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * Capa de acceso a datos para productos, separada del repositorio.
  */
-@Component
 @RequiredArgsConstructor
 public class ProductDataSource {
     private final ObjectMapper objectMapper;

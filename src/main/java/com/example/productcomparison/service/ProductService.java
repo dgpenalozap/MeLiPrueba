@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
  * 
  * @RequiredArgsConstructor generates constructor with final fields (Dependency Injection)
  */
-@Service
 @RequiredArgsConstructor
 public class ProductService implements IProductService {
     

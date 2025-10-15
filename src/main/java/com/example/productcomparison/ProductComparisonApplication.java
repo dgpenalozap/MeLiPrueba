@@ -23,8 +23,4 @@ public class ProductComparisonApplication {
         SpringApplication.run(ProductComparisonApplication.class, args);
     }
     
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
 }

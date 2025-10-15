@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
  * @see IProductRepository
  * @see Product
  */
-@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class ProductRepository implements IProductRepository {
