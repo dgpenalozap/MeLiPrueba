@@ -1,9 +1,10 @@
 package com.example.productcomparison.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
-import lombok.With;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -15,9 +16,10 @@ import java.util.Map;
  * @Builder provides builder pattern
  * @With allows creating copies with modified fields
  */
-@Value
+@Data
 @Builder
-@With
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Product entity representing an item available for comparison")
 public class Product {
 

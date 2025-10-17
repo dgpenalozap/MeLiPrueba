@@ -1,4 +1,4 @@
-package com.example.productcomparison.service;
+package com.example.productcomparison.unit.service;
 
 import com.example.productcomparison.exception.CategoryNotFoundException;
 import com.example.productcomparison.exception.InvalidParameterException;

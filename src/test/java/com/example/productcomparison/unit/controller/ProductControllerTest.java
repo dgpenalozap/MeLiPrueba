@@ -1,5 +1,6 @@
-package com.example.productcomparison.controller;
+package com.example.productcomparison.unit.controller;
 
+import com.example.productcomparison.controller.ProductController;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.service.IProductService;
 import org.junit.jupiter.api.BeforeEach;

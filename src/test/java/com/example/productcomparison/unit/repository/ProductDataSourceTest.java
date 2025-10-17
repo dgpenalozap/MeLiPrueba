@@ -1,4 +1,4 @@
-package com.example.productcomparison.repository;
+package com.example.productcomparison.unit.repository;
 
 import com.example.productcomparison.model.ProductDTO;
 import com.fasterxml.jackson.core.type.TypeReference;

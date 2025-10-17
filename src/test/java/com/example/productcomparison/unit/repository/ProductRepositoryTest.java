@@ -1,4 +1,4 @@
-package com.example.productcomparison.repository;
+package com.example.productcomparison.unit.repository;
 
 import com.example.productcomparison.exception.ProductDataAccessException;
 import com.example.productcomparison.model.Product;

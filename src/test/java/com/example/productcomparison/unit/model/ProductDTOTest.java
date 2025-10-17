@@ -1,4 +1,4 @@
-package com.example.productcomparison.model;
+package com.example.productcomparison.unit.model;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
