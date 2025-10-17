@@ -25,6 +25,9 @@ public class ProductService implements IProductService {
     
     @NonNull
     private final IProductRepository productRepository;
+    
+    @NonNull
+    private final AIProductGenerator aiProductGenerator;
 
     @Override
     public List<Product> getAllProducts() {
@@ -38,6 +41,51 @@ public class ProductService implements IProductService {
         }
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+    @Override
+    public Product createProduct(@NonNull Product product) {
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
+            throw new InvalidParameterException("name", product.getName(), "Product name cannot be empty");
+        }
+        if (product.getPrice() < 0) {
+            throw new InvalidPriceRangeException(product.getPrice(), 0, "Product price cannot be negative");
+        }
+        if (product.getRating() < 0 || product.getRating() > 5) {
+            throw new InvalidRatingException(product.getRating());
+        }
+        return productRepository.save(product);
+    }
+
+    @Override
+    public Product generateRandomProduct() {
+        Product randomProduct = aiProductGenerator.generateRandomProduct();
+        return productRepository.save(randomProduct);
+    }
+
+    @Override
+    public Product updateProduct(@NonNull String id, @NonNull Product product) {
+        if (id.trim().isEmpty()) {
+            throw new InvalidParameterException("id", id, "Product ID cannot be empty");
+        }
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
+            throw new InvalidParameterException("name", product.getName(), "Product name cannot be empty");
+        }
+        if (product.getPrice() < 0) {
+            throw new InvalidPriceRangeException(product.getPrice(), 0, "Product price cannot be negative");
+        }
+        if (product.getRating() < 0 || product.getRating() > 5) {
+            throw new InvalidRatingException(product.getRating());
+        }
+        return productRepository.update(id, product);
+    }
+
+    @Override
+    public void deleteProduct(@NonNull String id) {
+        if (id.trim().isEmpty()) {
+            throw new InvalidParameterException("id", id, "Product ID cannot be empty");
+        }
+        productRepository.deleteById(id);
     }
 
     @Override

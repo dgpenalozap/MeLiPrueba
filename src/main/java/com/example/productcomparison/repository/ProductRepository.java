@@ -12,8 +12,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class ProductRepository implements IProductRepository {
 
     private final ProductDataSource productDataSource;
+    private final ConcurrentHashMap<String, Product> inMemoryProducts = new ConcurrentHashMap<>();
 
     @Value("${product.data.json-file}")
     private String jsonFilePath;
@@ -38,6 +41,7 @@ public class ProductRepository implements IProductRepository {
     @PostConstruct
     public void init() {
         validateDataSource();
+        loadInitialData();
     }
 
     private void validateDataSource() {
@@ -51,12 +55,19 @@ public class ProductRepository implements IProductRepository {
         }
     }
 
+    private void loadInitialData() {
+        loadProductsFromFile().forEach(dto -> {
+            Product product = toDomain(dto);
+            if (validateProduct(product)) {
+                inMemoryProducts.put(product.getId(), product);
+            }
+        });
+        log.info("Loaded {} products into memory", inMemoryProducts.size());
+    }
+
     @Override
     public List<Product> findAll() {
-        return loadProductsFromFile().stream()
-                .map(this::toDomain)
-                .filter(this::validateProduct)
-                .collect(Collectors.toList());
+        return new ArrayList<>(inMemoryProducts.values());
     }
 
     @Override
@@ -65,12 +76,39 @@ public class ProductRepository implements IProductRepository {
             log.debug("Invalid product ID requested: {}", id);
             return Optional.empty();
         }
+        return Optional.ofNullable(inMemoryProducts.get(id));
+    }
 
-        return loadProductsFromFile().stream()
-                .map(this::toDomain)
-                .filter(this::validateProduct)
-                .filter(product -> product.getId().equals(id))
-                .findFirst();
+    @Override
+    public Product save(Product product) {
+        validateDto(toDto(product));
+        if (inMemoryProducts.containsKey(product.getId())) {
+            throw new IllegalArgumentException("Product with ID " + product.getId() + " already exists");
+        }
+        inMemoryProducts.put(product.getId(), product);
+        log.info("Product saved: {}", product.getId());
+        return product;
+    }
+
+    @Override
+    public Product update(String id, Product product) {
+        if (!inMemoryProducts.containsKey(id)) {
+            throw new IllegalArgumentException("Product with ID " + id + " not found");
+        }
+        Product updatedProduct = product.toBuilder().id(id).build();
+        validateDto(toDto(updatedProduct));
+        inMemoryProducts.put(id, updatedProduct);
+        log.info("Product updated: {}", id);
+        return updatedProduct;
+    }
+
+    @Override
+    public void deleteById(String id) {
+        if (!inMemoryProducts.containsKey(id)) {
+            throw new IllegalArgumentException("Product with ID " + id + " not found");
+        }
+        inMemoryProducts.remove(id);
+        log.info("Product deleted: {}", id);
     }
 
     private List<ProductDTO> loadProductsFromFile() {
@@ -101,6 +139,18 @@ public class ProductRepository implements IProductRepository {
                 .price(dto.getPrice())
                 .rating(dto.getRating())
                 .specifications(dto.getSpecifications())
+                .build();
+    }
+
+    private ProductDTO toDto(Product product) {
+        return ProductDTO.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .imageUrl(product.getImageUrl())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .rating(product.getRating())
+                .specifications(product.getSpecifications())
                 .build();
     }
 

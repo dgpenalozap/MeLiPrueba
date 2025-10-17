@@ -75,8 +75,14 @@ Once the application is running, access the **interactive API documentation** vi
 
 ## 📡 Endpoints
 
+### Product Management (CRUD Operations)
+- **POST** `/api/products` - Create a new product
+- **POST** `/api/products/generate` - Generate a random product using AI (LangChain4j)
+- **PUT** `/api/products/{id}` - Update an existing product
+- **DELETE** `/api/products/{id}` - Delete a product
+
 ### Basic Operations
-- **GET** `/api/products` - Get all products (45 products)
+- **GET** `/api/products` - Get all products (45+ products)
 - **GET** `/api/products/{id}` - Get product by ID
 - **GET** `/api/products/categories` - Get all categories
 
@@ -103,6 +109,7 @@ Once the application is running, access the **interactive API documentation** vi
 - **Lombok** - Boilerplate reduction
 - **Jackson** - JSON processing
 - **SpringDoc OpenAPI 2.2.0** - Swagger/API documentation
+- **LangChain4j 0.33.0** - AI-powered random product generation
 - **JUnit 5** - Testing Framework
 - **Mockito** - Mocking Framework
 
@@ -122,7 +129,95 @@ Once the application is running, access the **interactive API documentation** vi
 ```bash
 ./gradlew test
 ```
-**Expected output:** `8 tests completed, 8 passed` in < 100ms
+**Expected output:** All tests pass in < 200ms
+
+## 🤖 AI-Powered Random Product Generation
+
+The API includes AI-powered random product generation using **LangChain4j**. This feature can generate realistic product data automatically.
+
+### Setup (Optional)
+
+To enable AI-powered generation with OpenAI:
+
+1. Set the `OPENAI_API_KEY` environment variable:
+```bash
+export OPENAI_API_KEY=your-api-key-here
+```
+
+2. Or add it to `application.yaml`:
+```yaml
+openai:
+  api:
+    key: your-api-key-here
+```
+
+### Usage
+
+**Generate a random product:**
+```bash
+curl -X POST http://localhost:8080/api/products/generate
+```
+
+If no API key is configured, the system automatically falls back to a built-in random generator that creates realistic product data without requiring any external API.
+
+**Response:**
+```json
+{
+  "id": "gen-a1b2c3d4",
+  "name": "Premium Laptop Air",
+  "imageUrl": "https://via.placeholder.com/400x300",
+  "description": "AI-generated product: Premium Laptop Air",
+  "price": 1456.78,
+  "rating": 4.3,
+  "specifications": {
+    "category": "Laptops",
+    "generated": "AI Generated",
+    "brand": "GenBrand"
+  }
+}
+```
+
+## 📝 CRUD Operations Examples
+
+### Create a Product
+```bash
+curl -X POST http://localhost:8080/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "custom-001",
+    "name": "My Custom Product",
+    "imageUrl": "https://example.com/image.jpg",
+    "description": "A great product",
+    "price": 299.99,
+    "rating": 4.5,
+    "specifications": {
+      "category": "Laptops",
+      "brand": "CustomBrand"
+    }
+  }'
+```
+
+### Update a Product
+```bash
+curl -X PUT http://localhost:8080/api/products/custom-001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Product Name",
+    "imageUrl": "https://example.com/new-image.jpg",
+    "description": "Updated description",
+    "price": 349.99,
+    "rating": 4.7,
+    "specifications": {
+      "category": "Laptops",
+      "brand": "CustomBrand"
+    }
+  }'
+```
+
+### Delete a Product
+```bash
+curl -X DELETE http://localhost:8080/api/products/custom-001
+```
 
 ## 💡 IDE Setup (Lombok)
 

@@ -6,6 +6,11 @@ product:
   data:
     json-file: classpath:products.json
 
+# OpenAI Configuration (optional - for AI-powered product generation)
+openai:
+  api:
+    key: ${OPENAI_API_KEY:demo-key}
+
 # Jackson configuration for proper date/time serialization
 spring:
   jackson:

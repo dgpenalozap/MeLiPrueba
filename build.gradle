@@ -28,6 +28,10 @@ dependencies {
     // Swagger/OpenAPI Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     
+    // LangChain4j for AI-powered random data generation
+    implementation 'dev.langchain4j:langchain4j:0.33.0'
+    implementation 'dev.langchain4j:langchain4j-open-ai:0.33.0'
+    
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

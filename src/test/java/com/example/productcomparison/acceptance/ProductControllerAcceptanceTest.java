@@ -1,13 +1,19 @@
 package com.example.productcomparison.acceptance;
 
+import com.example.productcomparison.model.CreateProductRequest;
 import com.example.productcomparison.model.Product;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,6 +47,108 @@ public class ProductControllerAcceptanceTest {
     void getProduct_shouldReturnNotFound_whenNotFound() {
         ResponseEntity<Object> response = restTemplate.getForEntity("/api/products/non-existent-id", Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("POST /api/products should create a new product")
+    void createProduct_shouldCreateNewProduct() {
+        Map<String, String> specs = new HashMap<>();
+        specs.put("category", "Laptops");
+        specs.put("brand", "TestBrand");
+
+        CreateProductRequest request = CreateProductRequest.builder()
+                .id("acceptance-test-001")
+                .name("Acceptance Test Product")
+                .imageUrl("https://example.com/test.jpg")
+                .description("Test description")
+                .price(299.99)
+                .rating(4.5)
+                .specifications(specs)
+                .build();
+
+        ResponseEntity<Product> response = restTemplate.postForEntity("/api/products", request, Product.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo("acceptance-test-001");
+        assertThat(response.getBody().getName()).isEqualTo("Acceptance Test Product");
+    }
+
+    @Test
+    @DisplayName("POST /api/products/generate should generate a random product")
+    void generateRandomProduct_shouldGenerateProduct() {
+        ResponseEntity<Product> response = restTemplate.postForEntity("/api/products/generate", null, Product.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isNotNull();
+        assertThat(response.getBody().getName()).isNotNull();
+        assertThat(response.getBody().getPrice()).isGreaterThan(0);
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should update existing product")
+    void updateProduct_shouldUpdateExistingProduct() {
+        // First, create a product
+        Map<String, String> specs = new HashMap<>();
+        specs.put("category", "Laptops");
+        
+        CreateProductRequest createRequest = CreateProductRequest.builder()
+                .id("update-test-001")
+                .name("Original Name")
+                .price(199.99)
+                .rating(4.0)
+                .specifications(specs)
+                .build();
+        
+        restTemplate.postForEntity("/api/products", createRequest, Product.class);
+
+        // Now update it
+        CreateProductRequest updateRequest = CreateProductRequest.builder()
+                .name("Updated Name")
+                .price(249.99)
+                .rating(4.5)
+                .specifications(specs)
+                .build();
+
+        HttpEntity<CreateProductRequest> entity = new HttpEntity<>(updateRequest);
+        ResponseEntity<Product> response = restTemplate.exchange(
+                "/api/products/update-test-001",
+                HttpMethod.PUT,
+                entity,
+                Product.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getName()).isEqualTo("Updated Name");
+        assertThat(response.getBody().getPrice()).isEqualTo(249.99);
+    }
+
+    @Test
+    @DisplayName("DELETE /api/products/{id} should delete existing product")
+    void deleteProduct_shouldDeleteExistingProduct() {
+        // First, create a product to delete
+        Map<String, String> specs = new HashMap<>();
+        specs.put("category", "Laptops");
+        
+        CreateProductRequest createRequest = CreateProductRequest.builder()
+                .id("delete-test-002")
+                .name("To Delete")
+                .price(99.99)
+                .rating(4.0)
+                .specifications(specs)
+                .build();
+        
+        restTemplate.postForEntity("/api/products", createRequest, Product.class);
+
+        // Now delete it
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "/api/products/delete-test-002",
+                HttpMethod.DELETE,
+                null,
+                Void.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     @Test

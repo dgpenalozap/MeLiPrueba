@@ -26,4 +26,25 @@ public interface IProductRepository {
      * @return an Optional containing the product if found
      */
     Optional<Product> findById(String id);
+    
+    /**
+     * Saves a new product.
+     * @param product the product to save
+     * @return the saved product
+     */
+    Product save(Product product);
+    
+    /**
+     * Updates an existing product.
+     * @param id the product ID to update
+     * @param product the updated product data
+     * @return the updated product
+     */
+    Product update(String id, Product product);
+    
+    /**
+     * Deletes a product by its ID.
+     * @param id the product ID to delete
+     */
+    void deleteById(String id);
 }

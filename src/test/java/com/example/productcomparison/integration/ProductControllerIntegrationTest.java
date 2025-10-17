@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -44,6 +44,133 @@ public class ProductControllerIntegrationTest {
     void getProduct_shouldReturnNotFound_whenNotFound() throws Exception {
         mockMvc.perform(get("/api/products/non-existent-id"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("POST /api/products should create a new product")
+    void createProduct_shouldCreateNewProduct() throws Exception {
+        String requestBody = """
+            {
+                "id": "test-999",
+                "name": "Test Product",
+                "imageUrl": "https://example.com/test.jpg",
+                "description": "Test description",
+                "price": 199.99,
+                "rating": 4.5,
+                "specifications": {
+                    "category": "Laptops",
+                    "brand": "TestBrand"
+                }
+            }
+            """;
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("test-999"))
+                .andExpect(jsonPath("$.name").value("Test Product"));
+    }
+
+    @Test
+    @DisplayName("POST /api/products should return 400 for invalid product")
+    void createProduct_shouldReturnBadRequest_forInvalidProduct() throws Exception {
+        String requestBody = """
+            {
+                "id": "test-999",
+                "name": "",
+                "price": -10,
+                "rating": 6.0
+            }
+            """;
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /api/products/generate should generate a random product")
+    void generateRandomProduct_shouldGenerateProduct() throws Exception {
+        mockMvc.perform(post("/api/products/generate"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.price").isNumber())
+                .andExpect(jsonPath("$.rating").isNumber());
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should update existing product")
+    void updateProduct_shouldUpdateExistingProduct() throws Exception {
+        String requestBody = """
+            {
+                "name": "Updated Product Name",
+                "imageUrl": "https://example.com/updated.jpg",
+                "description": "Updated description",
+                "price": 299.99,
+                "rating": 4.8,
+                "specifications": {
+                    "category": "Laptops",
+                    "brand": "UpdatedBrand"
+                }
+            }
+            """;
+
+        mockMvc.perform(put("/api/products/laptop-001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("laptop-001"))
+                .andExpect(jsonPath("$.name").value("Updated Product Name"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should return 404 for non-existent product")
+    void updateProduct_shouldReturnNotFound_forNonExistentProduct() throws Exception {
+        String requestBody = """
+            {
+                "name": "Updated Product Name",
+                "price": 299.99,
+                "rating": 4.8
+            }
+            """;
+
+        mockMvc.perform(put("/api/products/non-existent-id")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/products/{id} should delete existing product")
+    void deleteProduct_shouldDeleteExistingProduct() throws Exception {
+        // First create a product to delete
+        String createBody = """
+            {
+                "id": "delete-test",
+                "name": "To Delete",
+                "price": 99.99,
+                "rating": 4.0
+            }
+            """;
+        
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createBody))
+                .andExpect(status().isCreated());
+
+        // Then delete it
+        mockMvc.perform(delete("/api/products/delete-test"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/products/{id} should return 404 for non-existent product")
+    void deleteProduct_shouldReturnNotFound_forNonExistentProduct() throws Exception {
+        mockMvc.perform(delete("/api/products/non-existent-id"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

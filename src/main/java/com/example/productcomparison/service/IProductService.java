@@ -26,6 +26,33 @@ public interface IProductService {
     Product getProductById(String id);
     
     /**
+     * Creates a new product.
+     * @param product the product to create
+     * @return the created product
+     */
+    Product createProduct(Product product);
+    
+    /**
+     * Generates a random product using AI.
+     * @return the generated product
+     */
+    Product generateRandomProduct();
+    
+    /**
+     * Updates an existing product.
+     * @param id the product ID to update
+     * @param product the updated product data
+     * @return the updated product
+     */
+    Product updateProduct(String id, Product product);
+    
+    /**
+     * Deletes a product by its ID.
+     * @param id the product ID to delete
+     */
+    void deleteProduct(String id);
+    
+    /**
      * Search products by name (case-insensitive, partial match).
      * @param query search query
      * @return list of matching products

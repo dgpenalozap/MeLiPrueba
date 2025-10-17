@@ -1,6 +1,7 @@
 package com.example.productcomparison.controller;
 
 import com.example.productcomparison.exception.ErrorResponse;
+import com.example.productcomparison.model.CreateProductRequest;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.service.IProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,6 +67,93 @@ public class ProductController {
             @PathVariable String id) {
         Product product = productService.getProductById(id);
         return ResponseEntity.ok(product);
+    }
+
+    @Operation(
+        summary = "Create a new product",
+        description = "Creates a new product with the provided data"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Product created successfully",
+                    content = @Content(schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid product data",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping
+    public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequest request) {
+        Product product = Product.builder()
+                .id(request.getId())
+                .name(request.getName())
+                .imageUrl(request.getImageUrl())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .rating(request.getRating())
+                .specifications(request.getSpecifications())
+                .build();
+        Product created = productService.createProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @Operation(
+        summary = "Generate a random product using AI",
+        description = "Generates and saves a random product using AI (LangChain4j). Falls back to random generation if OpenAI API key is not configured."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Random product generated and created successfully",
+                    content = @Content(schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "500", description = "Failed to generate product",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/generate")
+    public ResponseEntity<Product> generateRandomProduct() {
+        Product generated = productService.generateRandomProduct();
+        return ResponseEntity.status(HttpStatus.CREATED).body(generated);
+    }
+
+    @Operation(
+        summary = "Update an existing product",
+        description = "Updates an existing product with the provided data"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Product updated successfully",
+                    content = @Content(schema = @Schema(implementation = Product.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid product data",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(
+            @Parameter(description = "Product ID to update", required = true, example = "laptop-001")
+            @PathVariable String id,
+            @RequestBody CreateProductRequest request) {
+        Product product = Product.builder()
+                .name(request.getName())
+                .imageUrl(request.getImageUrl())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .rating(request.getRating())
+                .specifications(request.getSpecifications())
+                .build();
+        Product updated = productService.updateProduct(id, product);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(
+        summary = "Delete a product",
+        description = "Deletes a product by its ID"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(
+            @Parameter(description = "Product ID to delete", required = true, example = "laptop-001")
+            @PathVariable String id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
@@ -252,5 +341,4 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 }
-
 
