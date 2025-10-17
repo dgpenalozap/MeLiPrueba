@@ -11,6 +11,7 @@ import java.util.Optional;
  * Following the Dependency Inversion Principle (DIP) - high-level modules
  * (services) depend on this abstraction, not on concrete implementations.
  */
+
 public interface IProductRepository {
     
     /**

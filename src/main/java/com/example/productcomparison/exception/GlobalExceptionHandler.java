@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-
 /**
  * Global exception handler for consistent error responses across the API.
  * Catches all exceptions and returns standardized ErrorResponse objects.
@@ -30,15 +27,12 @@ public class GlobalExceptionHandler {
         
         log.warn("Product not found: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .errorCode("PRODUCT_NOT_FOUND")
-                .details(String.format("The requested product with ID '%s' does not exist in the database", 
-                        ex.getProductId()))
                 .build();
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -53,15 +47,12 @@ public class GlobalExceptionHandler {
         
         log.warn("Category not found: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .errorCode("CATEGORY_NOT_FOUND")
-                .details(String.format("The category '%s' does not exist. Use /api/products/categories to see available categories", 
-                        ex.getCategory()))
                 .build();
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -76,18 +67,13 @@ public class GlobalExceptionHandler {
         
         log.warn("Invalid parameter: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .errorCode("INVALID_PARAMETER")
                 .validationErrors(ex.getValidationErrors())
-                .details(ex.getParameterName() != null 
-                        ? String.format("Parameter '%s' has invalid value: %s", 
-                                ex.getParameterName(), ex.getParameterValue())
-                        : null)
                 .build();
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -102,15 +88,12 @@ public class GlobalExceptionHandler {
         
         log.warn("Invalid price range: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .errorCode("INVALID_PRICE_RANGE")
-                .details(String.format("Invalid price range: min=%.2f, max=%.2f", 
-                        ex.getMinPrice(), ex.getMaxPrice()))
                 .build();
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -125,15 +108,12 @@ public class GlobalExceptionHandler {
         
         log.warn("Invalid rating: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .errorCode("INVALID_RATING")
-                .details(String.format("Rating must be between 0.0 and 5.0, provided: %.2f", 
-                        ex.getRating()))
                 .build();
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -148,8 +128,7 @@ public class GlobalExceptionHandler {
         
         log.info("Empty result: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
@@ -169,14 +148,12 @@ public class GlobalExceptionHandler {
         
         log.error("Data access error: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message("Failed to access product data")
                 .path(request.getRequestURI())
                 .errorCode("DATA_ACCESS_ERROR")
-                .details("An error occurred while accessing the product database. Please try again later.")
                 .build();
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
@@ -189,16 +166,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
         
-        log.warn("Missing request parameter: {}", ex.getMessage());
+        String message = String.format("Required parameter '%s' is missing", ex.getParameterName());
+        log.warn("Missing request parameter: {}", message);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(String.format("Required parameter '%s' is missing", ex.getParameterName()))
+                .message(message)
                 .path(request.getRequestURI())
                 .errorCode("MISSING_PARAMETER")
-                .validationErrors(Collections.singletonList(ex.getMessage()))
                 .build();
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -211,20 +187,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         
-        log.warn("Type mismatch for parameter: {}", ex.getMessage());
-        
         String expectedType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
         String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s", 
                 ex.getValue(), ex.getName(), expectedType);
+        log.warn("Type mismatch for parameter: {}", message);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(message)
                 .path(request.getRequestURI())
                 .errorCode("TYPE_MISMATCH")
-                .details(String.format("Parameter '%s' must be of type %s", ex.getName(), expectedType))
                 .build();
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -237,13 +210,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
             NoHandlerFoundException ex, HttpServletRequest request) {
         
-        log.warn("No handler found for request: {}", ex.getMessage());
+        String message = String.format("Endpoint not found: %s %s", ex.getHttpMethod(), ex.getRequestURL());
+        log.warn("No handler found for request: {}", message);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(String.format("Endpoint not found: %s %s", ex.getHttpMethod(), ex.getRequestURL()))
+                .message(message)
                 .path(request.getRequestURI())
                 .errorCode("ENDPOINT_NOT_FOUND")
                 .build();
@@ -260,8 +233,7 @@ public class GlobalExceptionHandler {
         
         log.warn("Illegal argument: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
@@ -281,14 +253,12 @@ public class GlobalExceptionHandler {
         
         log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(String.valueOf(LocalDateTime.now()))
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message("An unexpected error occurred")
                 .path(request.getRequestURI())
                 .errorCode("INTERNAL_SERVER_ERROR")
-                .details("Please contact support if this problem persists")
                 .build();
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);

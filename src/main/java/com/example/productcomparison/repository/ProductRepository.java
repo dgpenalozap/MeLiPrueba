@@ -1,5 +1,6 @@
 package com.example.productcomparison.repository;
 
+import com.example.productcomparison.exception.DataSourceInitializationException;
 import com.example.productcomparison.exception.ProductDataAccessException;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.model.ProductDTO;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
  * @see IProductRepository
  * @see Product
  */
+
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class ProductRepository implements IProductRepository {
@@ -37,16 +40,11 @@ public class ProductRepository implements IProductRepository {
         validateDataSource();
     }
 
-    /**
-     * Validates that the data source is accessible and properly configured.
-     *
-     * @throws ProductDataAccessException if the data source cannot be accessed
-     */
     private void validateDataSource() {
         try {
             List<ProductDTO> products = loadProductsFromFile();
             log.info("Data source validation successful. Found {} products.", products.size());
-        } catch (Exception e) {
+        } catch (DataSourceInitializationException e) {
             String errorMessage = "Failed to validate data source: " + jsonFilePath;
             log.error(errorMessage, e);
             throw new ProductDataAccessException(errorMessage, e);
@@ -75,16 +73,10 @@ public class ProductRepository implements IProductRepository {
                 .findFirst();
     }
 
-    /**
-     * Loads products from the JSON file.
-     *
-     * @return List of product DTOs
-     * @throws ProductDataAccessException if an error occurs during loading
-     */
     private List<ProductDTO> loadProductsFromFile() {
         try {
             log.debug("Loading products from: {}", jsonFilePath);
-            List<ProductDTO> dtos = productDataSource.loadProducts(jsonFilePath);
+            List<ProductDTO> dtos = productDataSource.loadProductsFromJson(jsonFilePath);
 
             if (dtos == null || dtos.isEmpty()) {
                 log.warn("No products found in {}", jsonFilePath);
@@ -92,20 +84,13 @@ public class ProductRepository implements IProductRepository {
             }
 
             return dtos;
-        } catch (IOException e) {
+        } catch (DataSourceInitializationException e) {
             String errorMessage = "Failed to load products from " + jsonFilePath;
             log.error(errorMessage, e);
             throw new ProductDataAccessException(errorMessage, e);
         }
     }
 
-    /**
-     * Converts a DTO to a domain entity with validation.
-     *
-     * @param dto the DTO to convert
-     * @return the domain Product entity
-     * @throws IllegalArgumentException if the DTO is null or contains invalid data
-     */
     private Product toDomain(ProductDTO dto) {
         validateDto(dto);
         return Product.builder()
@@ -119,24 +104,12 @@ public class ProductRepository implements IProductRepository {
                 .build();
     }
 
-    /**
-     * Validates the DTO data.
-     *
-     * @param dto the DTO to validate
-     * @throws IllegalArgumentException if validation fails
-     */
     private void validateDto(ProductDTO dto) {
         Assert.notNull(dto, "ProductDTO cannot be null");
         Assert.hasText(dto.getId(), "Product ID cannot be null or empty");
         Assert.hasText(dto.getName(), "Product name cannot be null or empty");
     }
 
-    /**
-     * Validates that a product contains all required data with valid values.
-     *
-     * @param product the product to validate
-     * @return true if the product is valid, false otherwise
-     */
     private boolean validateProduct(Product product) {
         if (!isValidPrice(product.getPrice())) {
             log.warn("Product {} ignored: invalid price", product.getId());
@@ -149,32 +122,11 @@ public class ProductRepository implements IProductRepository {
         return true;
     }
 
-    /**
-     * Validates the product price.
-     *
-     * @param price the price to validate
-     * @return true if the price is valid, false otherwise
-     */
     private boolean isValidPrice(Double price) {
         return price != null && price >= 0;
     }
 
-    /**
-     * Validates the product rating.
-     *
-     * @param rating the rating to validate
-     * @return true if the rating is valid or null, false if invalid
-     */
     private boolean isValidRating(Double rating) {
         return rating == null || (rating >= 0 && rating <= 5);
-    }
-
-    /**
-     * Returns the number of valid products in the data source.
-     *
-     * @return the count of valid products
-     */
-    public int getProductCount() {
-        return findAll().size();
     }
 }

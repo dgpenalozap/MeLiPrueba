@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
  * 
  * @RequiredArgsConstructor generates constructor with final fields (Dependency Injection)
  */
+
+@Service
 @RequiredArgsConstructor
 public class ProductService implements IProductService {
     
@@ -52,7 +54,6 @@ public class ProductService implements IProductService {
 
     @Override
     public List<Product> filterByPriceRange(double minPrice, double maxPrice) {
-        // Validate price range
         if (minPrice < 0) {
             throw new InvalidPriceRangeException(minPrice, maxPrice, "Minimum price cannot be negative");
         }
@@ -91,7 +92,6 @@ public class ProductService implements IProductService {
                 .filter(p -> category.equalsIgnoreCase(p.getSpecifications().get("category")))
                 .collect(Collectors.toList());
         
-        // If no results and category doesn't exist, throw specific exception
         if (results.isEmpty()) {
             List<String> existingCategories = getAllCategories();
             boolean categoryExists = existingCategories.stream()
@@ -110,7 +110,7 @@ public class ProductService implements IProductService {
         return productRepository.findAll().stream()
                 .filter(p -> p.getSpecifications() != null)
                 .map(p -> p.getSpecifications().get("category"))
-                .filter(category -> category != null && !category.isEmpty())
+                .filter(cat -> cat != null && !cat.isEmpty())
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -128,25 +128,14 @@ public class ProductService implements IProductService {
         }
         
         List<Product> products = productIds.stream()
-                .map(id -> productRepository.findById(id).orElse(null))
-                .filter(product -> product != null)
+                .map(this::getProductById) // Reuse getProductById to handle not found cases
                 .collect(Collectors.toList());
-        
-        // Report which products were not found
+
         if (products.size() < productIds.size()) {
-            List<String> foundIds = products.stream()
-                    .map(Product::getId)
-                    .collect(Collectors.toList());
-            List<String> notFoundIds = productIds.stream()
-                    .filter(id -> !foundIds.contains(id))
-                    .collect(Collectors.toList());
-            
-            if (products.isEmpty()) {
-                throw new ProductNotFoundException(String.join(", ", notFoundIds), 
-                        "None of the requested products were found");
-            }
+            // This logic is implicitly handled by getProductById throwing an exception
+            // but could be enhanced to collect all missing IDs into one exception.
         }
-        
+
         return products;
     }
 

@@ -1,6 +1,12 @@
-# Prompts Used with GenAI
+# Prompts & Tools Used with GenAI
 
-This file documents the prompts used to generate and refactor this project.
+This file documents the prompts and AI tools used to generate and refactor this project.
+
+## AI Tools Used
+
+- **GitHub Copilot CLI**: For general command-line operations and file manipulation.
+- **Gemini CLI**: For code generation, refactoring, and documentation updates.
+- **GitHub Copilot (IntelliJ IDEA Plugin)**: For real-time code completion and suggestions within the IDE.
 
 ## Initial Project Generation
 
@@ -17,9 +23,10 @@ This file documents the prompts used to generate and refactor this project.
 - "Add more services for filtering products by price, rating, and category."
 - "Implement a global exception handler to provide consistent JSON error responses for all controllers."
 - "Add Swagger (SpringDoc) for API documentation."
+- "Create all the tests for the controller, model, repository, and service folders."
 
 ## Documentation Prompts
 
 - "Update the `README.md` to include a description of the architecture, design patterns used, and a link to the Swagger documentation."
-- "Update `prompts.md` with the latest prompts used from our conversation history."
+- "Update `prompts.md` with the latest prompts used from our conversation history and mention the AI tools used."
 - "Create a `run.md` file with all the necessary steps to build, test, and run this project."
