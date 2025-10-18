@@ -21,7 +21,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Disable CSRF for stateless API
                 .csrf(AbstractHttpConfigurer::disable)
+                
+                // Disable HTTP Basic Authentication
+                .httpBasic(AbstractHttpConfigurer::disable)
+                
+                // Disable Form Login
+                .formLogin(AbstractHttpConfigurer::disable)
+                
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/auth/**").permitAll()
@@ -37,9 +46,13 @@ public class SecurityConfig {
                         
                         .anyRequest().authenticated()
                 )
+                
+                // Stateless session management (no sessions, only JWT)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                
+                // Add JWT filter before Spring Security's default authentication filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

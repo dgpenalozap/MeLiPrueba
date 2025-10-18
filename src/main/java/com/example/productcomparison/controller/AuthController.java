@@ -1,6 +1,7 @@
 package com.example.productcomparison.controller;
 
 import com.example.productcomparison.config.JwtUtil;
+import com.example.productcomparison.config.UserConfig;
 import com.example.productcomparison.model.LoginRequest;
 import com.example.productcomparison.model.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,21 +26,14 @@ import java.util.Map;
 public class AuthController {
 
     private final JwtUtil jwtUtil;
-    
-    // In-memory users (for demo purposes only)
-    // Username: admin, Password: admin123, Role: ROLE_ADMIN (full access)
-    // Username: user, Password: user123, Role: ROLE_USER (read-only)
-    private static final Map<String, String[]> USERS = new HashMap<>() {{
-        put("admin", new String[]{"admin123", "ROLE_ADMIN"});
-        put("user", new String[]{"user123", "ROLE_USER"});
-    }};
+    private final UserConfig userConfig;
 
     @Operation(
         summary = "Login with credentials",
         description = """
                 Authenticate and get JWT token.
                 
-                **Demo Users:**
+                **Demo Users (configured in application.properties):**
                 
                 1. **Admin User** (Full Access - GET, POST, PUT, DELETE):
                    - Username: `admin`
@@ -67,20 +62,23 @@ public class AuthController {
                     .body(Map.of("error", "Username and password are required"));
         }
         
-        String[] userData = USERS.get(username);
+        // Find user in configuration
+        UserConfig.DemoUser user = userConfig.getUsers().stream()
+                .filter(u -> u.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
         
-        if (userData == null || !userData[0].equals(password)) {
+        if (user == null || !user.getPassword().equals(password)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid username or password"));
         }
         
-        String role = userData[1];
-        String token = jwtUtil.generateToken(username, role);
+        String token = jwtUtil.generateToken(username, user.getRole());
         
         LoginResponse response = new LoginResponse(
                 token,
                 username,
-                role,
+                user.getRole(),
                 "Login successful"
         );
         
@@ -89,26 +87,25 @@ public class AuthController {
 
     @Operation(
         summary = "Get available demo users",
-        description = "Returns information about the demo users available for testing"
+        description = "Returns information about the demo users available for testing (configured in application.properties)"
     )
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
+        List<Map<String, String>> users = userConfig.getUsers().stream()
+                .map(user -> Map.of(
+                        "username", user.getUsername(),
+                        "password", user.getPassword(),
+                        "role", user.getRole(),
+                        "permissions", user.getRole().equals("ROLE_ADMIN") 
+                                ? "GET, POST, PUT, DELETE" 
+                                : "GET only"
+                ))
+                .collect(Collectors.toList());
+        
         return ResponseEntity.ok(Map.of(
-                "users", new Object[]{
-                        Map.of(
-                                "username", "admin",
-                                "password", "admin123",
-                                "role", "ROLE_ADMIN",
-                                "permissions", "GET, POST, PUT, DELETE"
-                        ),
-                        Map.of(
-                                "username", "user",
-                                "password", "user123",
-                                "role", "ROLE_USER",
-                                "permissions", "GET only"
-                        )
-                },
-                "note", "This is a demo project. In production, never expose passwords!"
+                "users", users,
+                "note", "This is a demo project. In production, never expose passwords!",
+                "source", "Users are configured in application.properties"
         ));
     }
 }
