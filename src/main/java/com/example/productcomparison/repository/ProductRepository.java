@@ -56,6 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class ProductRepository implements IProductRepository {
 
     @Value("${product.data.json-file}")
@@ -68,6 +69,8 @@ public class ProductRepository implements IProductRepository {
     private static final String ERROR_LOAD_PRODUCTS = "Failed to load products from ";
     private static final String ERROR_PRODUCT_EXISTS = "Product with ID %s already exists";
     private static final String ERROR_PRODUCT_NOT_FOUND = "Product with ID %s not found";
+    private static final String WARN_INVALID_PRODUCT_DATA = "Invalid product data from source, skipping product with ID: {}";
+
 
     @PostConstruct
     public void init() {
@@ -82,7 +85,9 @@ public class ProductRepository implements IProductRepository {
             }
             return dtos;
         } catch (DataSourceInitializationException e) {
-            throw new ProductDataAccessException(ERROR_LOAD_PRODUCTS + jsonFilePath, e);
+            String errorMessage = ERROR_LOAD_PRODUCTS + jsonFilePath;
+            log.error(errorMessage, e);
+            throw new ProductDataAccessException(errorMessage, e);
         }
     }
 
@@ -112,7 +117,9 @@ public class ProductRepository implements IProductRepository {
     public Product save(Product product) {
         productMapper.validateDto(productMapper.toDto(product));
         if (inMemoryProducts.containsKey(product.getId())) {
-            throw new IllegalArgumentException(String.format(ERROR_PRODUCT_EXISTS, product.getId()));
+            String errorMessage = String.format(ERROR_PRODUCT_EXISTS, product.getId());
+            log.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
         inMemoryProducts.put(product.getId(), product);
         return product;
@@ -121,7 +128,9 @@ public class ProductRepository implements IProductRepository {
     @Override
     public Product update(String id, Product product) {
         if (!inMemoryProducts.containsKey(id)) {
-            throw new IllegalArgumentException(String.format(ERROR_PRODUCT_NOT_FOUND, id));
+            String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
+            log.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
         Product updatedProduct = product.toBuilder().id(id).build();
         productMapper.validateDto(productMapper.toDto(updatedProduct));
@@ -132,7 +141,9 @@ public class ProductRepository implements IProductRepository {
     @Override
     public void deleteById(String id) {
         if (!inMemoryProducts.containsKey(id)) {
-            throw new IllegalArgumentException(String.format(ERROR_PRODUCT_NOT_FOUND, id));
+            String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
+            log.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
         inMemoryProducts.remove(id);
     }

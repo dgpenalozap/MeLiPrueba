@@ -52,6 +52,7 @@ class ProductDataSourceTest {
     @Test
     @DisplayName("loadProducts should return a list of products")
     void loadProducts_ReturnsListOfProductsFromJsonFromJsonFromJson() throws IOException {
+        // Arrange
         String jsonContent = "[{\"id\":\"1\",\"name\":\"Product 1\"}]";
         InputStream inputStream = new ByteArrayInputStream(jsonContent.getBytes());
         List<ProductDTO> expectedProducts = List.of(new ProductDTO());
@@ -61,8 +62,10 @@ class ProductDataSourceTest {
         when(resource.getInputStream()).thenReturn(inputStream);
         when(objectMapper.readValue(any(InputStream.class), ArgumentMatchers.<TypeReference<List<ProductDTO>>>any())).thenReturn(expectedProducts);
 
+        // Act
         List<ProductDTO> actualProducts = productDataSource.loadProductsFromJson("classpath:products.json");
 
+        // Assert
         assertNotNull(actualProducts);
         assertEquals(expectedProducts, actualProducts);
     }
@@ -70,22 +73,26 @@ class ProductDataSourceTest {
     @Test
     @DisplayName("loadProductsFromJson should throw DataSourceInitializationException when getting input stream fails")
     void loadProductsFromJson_whenInputStreamThrowsIOException_throwsDataSourceInitializationException() throws IOException {
+        // Arrange
         String filePath = "classpath:products.json";
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenThrow(new IOException("File not found"));
 
+        // Act
         DataSourceInitializationException exception = assertThrows(
-            DataSourceInitializationException.class,
-            () -> productDataSource.loadProductsFromJson(filePath)
+                DataSourceInitializationException.class,
+                () -> productDataSource.loadProductsFromJson(filePath)
         );
 
+        // Assert
         assertTrue(exception.getMessage().contains(FILE_READ_ERROR));
     }
 
     @Test
     @DisplayName("loadProductsFromJson should throw DataSourceInitializationException on JSON parsing error")
     void loadProductsFromJson_whenParsingThrowsIOException_throwsDataSourceInitializationException() throws IOException {
+        // Arrange
         String filePath = "classpath:products.json";
         String invalidJsonContent = "invalid-json";
         InputStream inputStream = new ByteArrayInputStream(invalidJsonContent.getBytes());
@@ -94,39 +101,49 @@ class ProductDataSourceTest {
         when(resource.exists()).thenReturn(true);
         when(resource.getInputStream()).thenReturn(inputStream);
         when(objectMapper.readValue(any(InputStream.class), ArgumentMatchers.<TypeReference<List<ProductDTO>>>any()))
-            .thenThrow(new IOException("JSON parsing error"));
+                .thenThrow(new IOException("JSON parsing error"));
 
+        // Act
         DataSourceInitializationException exception = assertThrows(
-            DataSourceInitializationException.class,
-            () -> productDataSource.loadProductsFromJson(filePath)
+                DataSourceInitializationException.class,
+                () -> productDataSource.loadProductsFromJson(filePath)
         );
 
+        // Assert
         assertTrue(exception.getMessage().contains(FILE_READ_ERROR));
     }
 
     @Test
     @DisplayName("loadProductsFromJson should throw DataSourceInitializationException when file does not exist")
     void loadProductsFromJson_whenFileDoesNotExist_throwsDataSourceInitializationException() {
+        // Arrange
         String filePath = "classpath:nonexistent.json";
         when(resourceLoader.getResource(anyString())).thenReturn(resource);
         when(resource.exists()).thenReturn(false);
 
+        // Act
         DataSourceInitializationException exception = assertThrows(
-            DataSourceInitializationException.class,
-            () -> productDataSource.loadProductsFromJson(filePath)
+                DataSourceInitializationException.class,
+                () -> productDataSource.loadProductsFromJson(filePath)
         );
 
+        // Assert
         assertTrue(exception.getMessage().contains(FILE_NOT_FOUND_ERROR));
     }
 
     @Test
     @DisplayName("loadProductsFromJson should throw IllegalArgumentException when jsonFilePath is null")
     void loadProductsFromJson_whenJsonFilePathIsNull_throwsIllegalArgumentException() {
+        // Arrange
+        // No specific arrangement needed for this test case
+
+        // Act
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> productDataSource.loadProductsFromJson(null)
+                IllegalArgumentException.class,
+                () -> productDataSource.loadProductsFromJson(null)
         );
 
+        // Assert
         assertEquals(INVALID_PATH_ERROR, exception.getMessage());
     }
 
