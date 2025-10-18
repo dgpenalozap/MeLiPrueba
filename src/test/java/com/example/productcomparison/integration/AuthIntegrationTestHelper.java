@@ -1,19 +1,18 @@
 package com.example.productcomparison.integration;
 
 import com.example.productcomparison.config.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Helper class for JWT authentication in integration tests
+ * Helper class for JWT authentication in integration tests.
+ * Generates valid JWT tokens for test users.
  */
 @Component
 public class AuthIntegrationTestHelper {
 
-    private final JwtUtil jwtUtil;
-
-    public AuthIntegrationTestHelper(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * Generate admin token for tests

@@ -22,6 +22,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return token for valid admin credentials")
     void login_shouldReturnToken_forValidAdminCredentials() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": "admin",
@@ -29,6 +30,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -42,6 +44,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return token for valid user credentials")
     void login_shouldReturnToken_forValidUserCredentials() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": "user",
@@ -49,6 +52,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -62,6 +66,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return 401 for invalid username")
     void login_shouldReturn401_forInvalidUsername() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": "invalid-user",
@@ -69,6 +74,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -79,6 +85,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return 401 for invalid password")
     void login_shouldReturn401_forInvalidPassword() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": "admin",
@@ -86,6 +93,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -96,6 +104,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return 401 for null username")
     void login_shouldReturn401_forNullUsername() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": null,
@@ -103,6 +112,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -113,6 +123,7 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("POST /auth/login should return 401 for null password")
     void login_shouldReturn401_forNullPassword() throws Exception {
+        // Arrange
         String requestBody = """
             {
                 "username": "admin",
@@ -120,6 +131,7 @@ public class AuthenticationIntegrationTest {
             }
             """;
 
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -130,18 +142,20 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("GET /auth/users should return list of available demo users")
     void getUsers_shouldReturnUsersList() throws Exception {
+        // Act & Assert
         mockMvc.perform(get("/auth/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.users").exists())
                 .andExpect(jsonPath("$.users").isArray())
                 .andExpect(jsonPath("$.users.length()").value(2))
-                .andExpect(jsonPath("$.note").exists());
+                .andExpect(jsonPath("$.note").exists())
+                .andExpect(jsonPath("$.source").value("Users are configured in application.properties"));
     }
 
     @Test
     @DisplayName("Authenticated request should work with valid token")
     void authenticatedRequest_shouldWork_withValidToken() throws Exception {
-        // First, login to get a token
+        // Arrange
         String loginBody = """
             {
                 "username": "admin",
@@ -157,10 +171,10 @@ public class AuthenticationIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        // Extract token (simple extraction for test)
+        // Extract token
         String token = response.split("\"token\":\"")[1].split("\"")[0];
 
-        // Use the token to access protected endpoint
+        // Act & Assert
         mockMvc.perform(get("/api/products")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -170,22 +184,31 @@ public class AuthenticationIntegrationTest {
     @Test
     @DisplayName("Request with invalid token should return 401")
     void request_shouldReturn401_withInvalidToken() throws Exception {
+        // Arrange
+        String invalidToken = "invalid-token-xyz";
+
+        // Act & Assert
         mockMvc.perform(get("/api/products")
-                        .header("Authorization", "Bearer invalid-token-xyz"))
+                        .header("Authorization", "Bearer " + invalidToken))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("Request with malformed authorization header should return 401")
     void request_shouldReturn401_withMalformedHeader() throws Exception {
+        // Arrange
+        String malformedHeader = "InvalidFormat token";
+
+        // Act & Assert
         mockMvc.perform(get("/api/products")
-                        .header("Authorization", "InvalidFormat token"))
+                        .header("Authorization", malformedHeader))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("Request without authorization header should return 401")
     void request_shouldReturn401_withoutAuthHeader() throws Exception {
+        // Act & Assert
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isUnauthorized());
     }
