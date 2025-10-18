@@ -1,9 +1,6 @@
 package com.example.productcomparison.unit.repository;
 
-import com.example.productcomparison.exception.repository.DataSourceInitializationException;
-import com.example.productcomparison.exception.repository.ProductAlreadyExistsException;
-import com.example.productcomparison.exception.repository.ProductDataAccessException;
-import com.example.productcomparison.exception.repository.ProductValidationException;
+import com.example.productcomparison.exception.repository.*;
 import com.example.productcomparison.exception.service.ProductNotFoundException;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.model.ProductDTO;
@@ -25,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -400,5 +398,111 @@ class ProductRepositoryTest {
         List<Product> products = productRepository.findAll();
         assertNotNull(products);
         assertTrue(products.isEmpty());
+    }
+
+
+    @Test
+    @DisplayName("save lanza ProductSaveException en error inesperado")
+    void save_ThrowsProductSaveException_OnUnexpectedError() {
+        // Arrange
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
+        productRepository.init();
+        Product product = createValidProduct("1", "Producto válido");
+        doThrow(new RuntimeException("Error inesperado")).when(productMapper).validateDto(any());
+
+        // Act & Assert
+        ProductSaveException ex = assertThrows(ProductSaveException.class, () -> productRepository.save(product));
+        assertEquals("1", ex.getProductId());
+        assertTrue(ex.getMessage().contains("Unexpected error during product save"));
+    }
+
+    @Test
+    @DisplayName("init maneja excepción general durante la carga inicial")
+    void init_HandlesGeneralException_DuringInitialDataLoad() {
+        // Arrange
+        ProductDTO validDto = createValidProductDTO("1", "Producto válido");
+        List<ProductDTO> dtos = List.of(validDto);
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(dtos);
+
+        // Simular error genérico durante la carga de datos (después de obtener los DTOs)
+        doThrow(new RuntimeException("Error inesperado")).when(productMapper).toDomain(any(ProductDTO.class));
+
+        // Act & Assert
+        ProductDataAccessException ex = assertThrows(ProductDataAccessException.class,
+                () -> productRepository.init());
+
+        assertTrue(ex.getMessage().contains("Unexpected error during initial data load"));
+        verify(productDataSource).loadProductsFromJson(anyString());
+    }
+
+    @Test
+    @DisplayName("init omite productos inválidos durante la carga")
+    void init_SkipsInvalidProducts_DuringMapping() {
+        // Arrange
+        ProductDTO validDto = createValidProductDTO("1", "Producto válido");
+        ProductDTO invalidDto = createValidProductDTO("2", "Producto inválido");
+        List<ProductDTO> dtos = List.of(validDto, invalidDto);
+
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(dtos);
+
+        // Usamos doAnswer para manejar dinámicamente las llamadas según el ID
+        doAnswer(invocation -> {
+            ProductDTO dto = invocation.getArgument(0);
+            if (dto.getId().equals("1")) {
+                return createValidProduct("1", "Producto válido");
+            } else {
+                throw new IllegalArgumentException("Formato inválido");
+            }
+        }).when(productMapper).toDomain(any(ProductDTO.class));
+
+        // Act
+        productRepository.init();
+
+        // Assert
+        List<Product> products = productRepository.findAll();
+        assertEquals(1, products.size());
+        assertEquals("1", products.get(0).getId());
+
+        // Verificar que se llamó dos veces a toDomain
+        verify(productMapper, times(2)).toDomain(any(ProductDTO.class));
+    }
+
+    @Test
+    @DisplayName("update lanza ProductUpdateException en error inesperado")
+    void update_ThrowsProductUpdateException_OnUnexpectedError() {
+        // Arrange
+        ProductDTO dto = createValidProductDTO("1", "Producto 1");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
+        productRepository.init();
+        Product product = createValidProduct("1", "Producto actualizado");
+        doThrow(new RuntimeException("Error inesperado")).when(productMapper).validateDto(any());
+
+        // Act & Assert
+        ProductUpdateException ex = assertThrows(ProductUpdateException.class, () -> productRepository.update("1", product));
+        assertEquals("1", ex.getProductId());
+        assertTrue(ex.getMessage().contains("Unexpected error during product update"));
+    }
+
+    @Test
+    @DisplayName("deleteById lanza ProductDeleteException en error inesperado")
+    void deleteById_ThrowsProductDeleteException_OnUnexpectedError() {
+        // Arrange
+        ProductDTO dto = createValidProductDTO("1", "Producto 1");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
+        productRepository.init();
+
+        // Obtener y modificar el mapa interno con un spy
+        ConcurrentHashMap<String, Product> inMemoryMap =
+                (ConcurrentHashMap<String, Product>) ReflectionTestUtils.getField(productRepository, "inMemoryProducts");
+        ConcurrentHashMap<String, Product> spyMap = spy(inMemoryMap);
+
+        // Configurar el spy para lanzar excepción cuando se llame al método remove
+        doThrow(new RuntimeException("Error inesperado")).when(spyMap).remove("1");
+        ReflectionTestUtils.setField(productRepository, "inMemoryProducts", spyMap);
+
+        // Act & Assert
+        ProductDeleteException ex = assertThrows(ProductDeleteException.class, () -> productRepository.deleteById("1"));
+        assertEquals("1", ex.getProductId());
+        assertTrue(ex.getMessage().contains("Unexpected error during product deletion"));
     }
 }
