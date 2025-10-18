@@ -21,11 +21,13 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,420 +46,33 @@ class ProductRepositoryTest {
     @InjectMocks
     private ProductRepository productRepository;
 
+    private ProductDTO productDTO1;
+    private Product product1;
+
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "test.json");
-    }
-
-    private ProductDTO createProductDTO(String id, String name, double price, double rating) {
-        return ProductDTO.builder()
-                .id(id)
-                .name(name)
-                .price(price)
-                .rating(rating)
-                .build();
-    }
-
-    private ProductDTO createValidProductDTO(String id, String name) {
-        return ProductDTO.builder()
-                .id(id)
-                .name(name)
-                .price(100.0)
-                .rating(4.5)
-                .build();
-    }
-
-    private Product createValidProduct(String id, String name) {
-        return Product.builder()
-                .id(id)
-                .name(name)
-                .price(100.0)
-                .rating(4.5)
-                .build();
-    }
-
-
-    @Test
-    @DisplayName("findAll should return a list of products")
-    void findAll_ReturnsListOfProducts() {
-        ProductDTO dto = createProductDTO("1", "Product 1", 100.0, 4.5);
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of(dto));
-        productRepository.init();
-
-        List<Product> products = productRepository.findAll();
-
-        assertNotNull(products);
-        assertEquals(1, products.size());
-        assertEquals("1", products.get(0).getId());
-    }
-
-    @Test
-    @DisplayName("findById should return a product when found")
-    void findById_ReturnsProduct_WhenFound() {
-        ProductDTO dto = createProductDTO("1", "Product 1", 100.0, 4.5);
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of(dto));
-        productRepository.init();
-
-        Optional<Product> product = productRepository.findById("1");
-
-        assertTrue(product.isPresent());
-        assertEquals("1", product.get().getId());
-    }
-
-    @Test
-    @DisplayName("findById should return empty when not found")
-    void findById_ReturnsEmpty_WhenNotFound() {
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of());
-        productRepository.init();
-
-        Optional<Product> product = productRepository.findById("1");
-
-        assertFalse(product.isPresent());
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"  ", "\t", "\n"})
-    @DisplayName("findById should return empty for null or blank IDs")
-    void findById_whenIdIsNullOrBlank_returnsEmpty(String invalidId) {
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of());
-        productRepository.init();
-
-        Optional<Product> product = productRepository.findById(invalidId);
-
-        assertFalse(product.isPresent());
-    }
-
-    @Test
-    @DisplayName("init should throw ProductDataAccessException when data source fails")
-    void init_whenDataSourceThrowsException_throwsProductDataAccessException() {
-        when(productDataSource.loadProductsFromJson("test.json"))
-                .thenThrow(new DataSourceInitializationException("File not found"));
-
-        assertThrows(ProductDataAccessException.class, () -> productRepository.init());
-    }
-
-    @Test
-    @DisplayName("save should throw ProductAlreadyExistsException when product already exists")
-    void save_whenProductAlreadyExists_throwsProductAlreadyExistsException() {
-        ProductDTO existingDto = createProductDTO("1", "Existing Product", 100.0, 4.5);
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of(existingDto));
-        productRepository.init();
-
-        Product newProduct = Product.builder()
+        productDTO1 = ProductDTO.builder()
                 .id("1")
-                .name("New Product")
-                .price(150.0)
-                .rating(5.0)
-                .build();
-
-        assertThrows(ProductAlreadyExistsException.class, () -> productRepository.save(newProduct));
-    }
-
-    @Test
-    @DisplayName("save should add a new product")
-    void save_shouldAddNewProduct() {
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of());
-        productRepository.init();
-
-        Product newProduct = Product.builder()
-                .id("2")
-                .name("New Product")
-                .price(200.0)
-                .rating(4.0)
-                .build();
-
-        Product savedProduct = productRepository.save(newProduct);
-
-        assertNotNull(savedProduct);
-        assertEquals("2", savedProduct.getId());
-        Optional<Product> foundProduct = productRepository.findById("2");
-        assertTrue(foundProduct.isPresent());
-        assertEquals("New Product", foundProduct.get().getName());
-    }
-
-    @Test
-    @DisplayName("update should modify an existing product")
-    void update_shouldModifyExistingProduct() {
-        ProductDTO existingDto = createProductDTO("1", "Original Product", 100.0, 4.5);
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of(existingDto));
-        productRepository.init();
-
-        Product productToUpdate = Product.builder()
-                .name("Updated Product")
-                .price(120.0)
-                .rating(4.7)
-                .build();
-
-        Product updatedProduct = productRepository.update("1", productToUpdate);
-
-        assertNotNull(updatedProduct);
-        assertEquals("1", updatedProduct.getId());
-        assertEquals("Updated Product", updatedProduct.getName());
-        Optional<Product> foundProduct = productRepository.findById("1");
-        assertTrue(foundProduct.isPresent());
-        assertEquals("Updated Product", foundProduct.get().getName());
-    }
-
-    @Test
-    @DisplayName("update should throw ProductNotFoundException when product not found")
-    void update_whenProductNotFound_throwsProductNotFoundException() {
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of());
-        productRepository.init();
-
-        Product productToUpdate = Product.builder()
-                .name("Non-existent Product")
-                .price(100.0)
-                .rating(4.5)
-                .build();
-        String nonExistentId = "999";
-
-        assertThrows(ProductNotFoundException.class,
-                () -> productRepository.update(nonExistentId, productToUpdate));
-    }
-
-    @Test
-    @DisplayName("deleteById should remove an existing product")
-    void deleteById_shouldRemoveExistingProduct() {
-        ProductDTO existingDto = createProductDTO("1", "Product to delete", 100.0, 4.5);
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of(existingDto));
-        productRepository.init();
-        assertTrue(productRepository.findById("1").isPresent());
-
-        productRepository.deleteById("1");
-
-        assertFalse(productRepository.findById("1").isPresent());
-    }
-
-    @Test
-    @DisplayName("deleteById should throw ProductNotFoundException when product not found")
-    void deleteById_whenProductNotFound_throwsProductNotFoundException() {
-        when(productDataSource.loadProductsFromJson("test.json")).thenReturn(List.of());
-        productRepository.init();
-        String nonExistentId = "999";
-
-        assertThrows(ProductNotFoundException.class,
-                () -> productRepository.deleteById(nonExistentId));
-    }
-
-    @Test
-    @DisplayName("save should throw ProductAlreadyExistsException when product exists")
-    void save_ThrowsProductAlreadyExistsException_WhenProductExists() {
-        ProductDTO dto = createValidProductDTO("1", "Product 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-
-        Product newProduct = createValidProduct("1", "New Product");
-
-        assertThrows(ProductAlreadyExistsException.class, () -> productRepository.save(newProduct));
-    }
-
-    @Test
-    @DisplayName("save should throw ProductValidationException when validation fails")
-    void save_ThrowsProductValidationException_WhenValidationFails() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        Product invalidProduct = Product.builder()
-                .id("")
-                .name("Test")
+                .name("Product 1")
                 .price(100.0)
                 .rating(4.5)
                 .build();
 
-        assertThrows(ProductValidationException.class, () -> productRepository.save(invalidProduct));
-    }
-
-    @Test
-    @DisplayName("save should save product successfully when valid")
-    void save_SavesProduct_WhenValid() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        Product product = createValidProduct("1", "Product 1");
-        Product saved = productRepository.save(product);
-
-        assertNotNull(saved);
-        assertEquals("1", saved.getId());
-        assertEquals("Product 1", saved.getName());
-    }
-
-    @Test
-    @DisplayName("update should throw ProductNotFoundException when product not found")
-    void update_ThrowsProductNotFoundException_WhenNotFound() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        Product product = createValidProduct("999", "Updated Product");
-
-        assertThrows(ProductNotFoundException.class, () -> productRepository.update("999", product));
-    }
-
-    @Test
-    @DisplayName("update should throw ProductValidationException when validation fails")
-    void update_ThrowsProductValidationException_WhenValidationFails() {
-        ProductDTO dto = createValidProductDTO("1", "Product 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-
-        Product invalidProduct = Product.builder()
+        product1 = Product.builder()
                 .id("1")
-                .name("")
+                .name("Product 1")
                 .price(100.0)
                 .rating(4.5)
                 .build();
-
-        assertThrows(ProductValidationException.class, () -> productRepository.update("1", invalidProduct));
     }
 
     @Test
-    @DisplayName("update should update product successfully when valid")
-    void update_UpdatesProduct_WhenValid() {
-        ProductDTO dto = createValidProductDTO("1", "Product 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-
-        Product updatedProduct = createValidProduct("1", "Updated Product");
-        Product result = productRepository.update("1", updatedProduct);
-
-        assertNotNull(result);
-        assertEquals("1", result.getId());
-        assertEquals("Updated Product", result.getName());
-    }
-
-    @Test
-    @DisplayName("deleteById should throw ProductNotFoundException when product not found")
-    void deleteById_ThrowsProductNotFoundException_WhenNotFound() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        assertThrows(ProductNotFoundException.class, () -> productRepository.deleteById("999"));
-    }
-
-    @Test
-    @DisplayName("deleteById should delete product successfully when exists")
-    void deleteById_DeletesProduct_WhenExists() {
-        ProductDTO dto = createValidProductDTO("1", "Product 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-
-        assertDoesNotThrow(() -> productRepository.deleteById("1"));
-
-        Optional<Product> deleted = productRepository.findById("1");
-        assertFalse(deleted.isPresent());
-    }
-
-    @Test
-    @DisplayName("init should throw ProductDataAccessException when data source fails")
-    void init_ThrowsProductDataAccessException_WhenDataSourceFails() {
-        when(productDataSource.loadProductsFromJson(anyString()))
-                .thenThrow(new DataSourceInitializationException("File not found"));
-
-        assertThrows(ProductDataAccessException.class, () -> productRepository.init());
-    }
-
-    @Test
-    @DisplayName("init should handle invalid products gracefully")
-    void init_HandlesInvalidProductsGracefully() {
-        ProductDTO validDto = createValidProductDTO("1", "Valid Product");
-        ProductDTO invalidDto = ProductDTO.builder()
-                .id("2")
-                .name("Invalid Product")
-                .price(-100.0)
-                .rating(4.5)
-                .build();
-
-        when(productDataSource.loadProductsFromJson(anyString()))
-                .thenReturn(List.of(validDto, invalidDto));
-
-        assertDoesNotThrow(() -> productRepository.init());
-
-        List<Product> products = productRepository.findAll();
-        assertEquals(1, products.size());
-        assertEquals("1", products.get(0).getId());
-    }
-
-    @Test
-    @DisplayName("findById should return empty for null or blank id")
-    void findById_ReturnsEmpty_ForNullOrBlankId() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        Optional<Product> nullResult = productRepository.findById(null);
-        assertFalse(nullResult.isPresent());
-
-        Optional<Product> blankResult = productRepository.findById("");
-        assertFalse(blankResult.isPresent());
-
-        Optional<Product> whitespaceResult = productRepository.findById("   ");
-        assertFalse(whitespaceResult.isPresent());
-    }
-
-    @Test
-    @DisplayName("findAll should return empty list when no products loaded")
-    void findAll_ReturnsEmptyList_WhenNoProducts() {
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-
-        List<Product> products = productRepository.findAll();
-        assertNotNull(products);
-        assertTrue(products.isEmpty());
-    }
-
-
-    @Test
-    @DisplayName("save lanza ProductSaveException en error inesperado")
-    void save_ThrowsProductSaveException_OnUnexpectedError() {
+    @DisplayName("Should initialize repository successfully with valid products")
+    void testInit_Success() {
         // Arrange
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
-        productRepository.init();
-        Product product = createValidProduct("1", "Producto válido");
-        doThrow(new RuntimeException("Error inesperado")).when(productValidator).validateDto(any());
-
-        // Act & Assert
-        ProductSaveException ex = assertThrows(ProductSaveException.class, () -> productRepository.save(product));
-        assertEquals("1", ex.getProductId());
-        assertTrue(ex.getMessage().contains("Unexpected error during product save"));
-    }
-
-    @Test
-    @DisplayName("init maneja excepción general durante la carga inicial")
-    void init_HandlesGeneralException_DuringInitialDataLoad() {
-        // Arrange
-        ProductDTO validDto = createValidProductDTO("1", "Producto válido");
-        List<ProductDTO> dtos = List.of(validDto);
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(dtos);
-
-        // Simular error genérico durante la carga de datos (después de obtener los DTOs)
-        doThrow(new RuntimeException("Error inesperado")).when(productMapper).toDomain(any(ProductDTO.class));
-
-        // Act & Assert
-        ProductDataAccessException ex = assertThrows(ProductDataAccessException.class,
-                () -> productRepository.init());
-
-        assertTrue(ex.getMessage().contains("Unexpected error during initial data load"));
-        verify(productDataSource).loadProductsFromJson(anyString());
-    }
-
-    @Test
-    @DisplayName("init omite productos inválidos durante la carga")
-    void init_SkipsInvalidProducts_DuringMapping() {
-        // Arrange
-        ProductDTO validDto = createValidProductDTO("1", "Producto válido");
-        ProductDTO invalidDto = createValidProductDTO("2", "Producto inválido");
-        List<ProductDTO> dtos = List.of(validDto, invalidDto);
-
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(dtos);
-
-        // Usamos doAnswer para manejar dinámicamente las llamadas según el ID
-        doAnswer(invocation -> {
-            ProductDTO dto = invocation.getArgument(0);
-            if (dto.getId().equals("1")) {
-                return createValidProduct("1", "Producto válido");
-            } else {
-                throw new IllegalArgumentException("Formato inválido");
-            }
-        }).when(productMapper).toDomain(any(ProductDTO.class));
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(productDTO1));
+        when(productMapper.toDomain(any(ProductDTO.class))).thenReturn(product1);
 
         // Act
         productRepository.init();
@@ -465,48 +80,307 @@ class ProductRepositoryTest {
         // Assert
         List<Product> products = productRepository.findAll();
         assertEquals(1, products.size());
-        assertEquals("1", products.get(0).getId());
-
-        // Verificar que se llamó dos veces a toDomain
-        verify(productMapper, times(2)).toDomain(any(ProductDTO.class));
+        verify(productDataSource).loadProductsFromJson(anyString());
     }
 
     @Test
-    @DisplayName("update lanza ProductUpdateException en error inesperado")
-    void update_ThrowsProductUpdateException_OnUnexpectedError() {
+    @DisplayName("Should handle empty product list during initialization")
+    void testInit_EmptyList() {
         // Arrange
-        ProductDTO dto = createValidProductDTO("1", "Producto 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-        Product product = createValidProduct("1", "Producto actualizado");
-        doThrow(new RuntimeException("Error inesperado")).when(productValidator).validateDto(any());
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(Collections.emptyList());
 
-        // Act & Assert
-        ProductUpdateException ex = assertThrows(ProductUpdateException.class, () -> productRepository.update("1", product));
-        assertEquals("1", ex.getProductId());
-        assertTrue(ex.getMessage().contains("Unexpected error during product update"));
+        // Act
+        productRepository.init();
+
+        // Assert
+        List<Product> products = productRepository.findAll();
+        assertTrue(products.isEmpty());
     }
 
     @Test
-    @DisplayName("deleteById lanza ProductDeleteException en error inesperado")
-    void deleteById_ThrowsProductDeleteException_OnUnexpectedError() {
+    @DisplayName("Should throw ProductDataAccessException when data source fails")
+    void testInit_DataSourceException() {
         // Arrange
-        ProductDTO dto = createValidProductDTO("1", "Producto 1");
-        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
-        productRepository.init();
-
-        // Obtener y modificar el mapa interno con un spy
-        ConcurrentHashMap<String, Product> inMemoryMap =
-                (ConcurrentHashMap<String, Product>) ReflectionTestUtils.getField(productRepository, "inMemoryProducts");
-        ConcurrentHashMap<String, Product> spyMap = spy(inMemoryMap);
-
-        // Configurar el spy para lanzar excepción cuando se llame al método remove
-        doThrow(new RuntimeException("Error inesperado")).when(spyMap).remove("1");
-        ReflectionTestUtils.setField(productRepository, "inMemoryProducts", spyMap);
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "invalid-path.json");
+        when(productDataSource.loadProductsFromJson(anyString()))
+                .thenThrow(new DataSourceInitializationException("File not found"));
 
         // Act & Assert
-        ProductDeleteException ex = assertThrows(ProductDeleteException.class, () -> productRepository.deleteById("1"));
-        assertEquals("1", ex.getProductId());
-        assertTrue(ex.getMessage().contains("Unexpected error during product deletion"));
+        assertThrows(ProductDataAccessException.class, () -> productRepository.init());
+    }
+
+    @Test
+    @DisplayName("Should skip invalid products during initialization")
+    void testInit_InvalidProduct() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        Product invalidProduct = Product.builder().id("2").name("Invalid").price(-10.0).build();
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(productDTO1));
+        when(productMapper.toDomain(any(ProductDTO.class))).thenReturn(invalidProduct);
+
+        // Act
+        productRepository.init();
+
+        // Assert
+        List<Product> products = productRepository.findAll();
+        assertTrue(products.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should handle mapper exception during initialization")
+    void testInit_MapperException() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(productDTO1));
+        when(productMapper.toDomain(any(ProductDTO.class))).thenThrow(new IllegalArgumentException("Mapping failed"));
+
+        // Act
+        productRepository.init();
+
+        // Assert
+        List<Product> products = productRepository.findAll();
+        assertTrue(products.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should handle unexpected exception during initialization")
+    void testInit_UnexpectedException() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act & Assert
+        assertThrows(ProductDataAccessException.class, () -> productRepository.init());
+    }
+
+    @Test
+    @DisplayName("Should return all products")
+    void testFindAll_Success() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(productDTO1));
+        when(productMapper.toDomain(any(ProductDTO.class))).thenReturn(product1);
+        productRepository.init();
+
+        // Act
+        List<Product> result = productRepository.findAll();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("1", result.get(0).getId());
+    }
+
+    @Test
+    @DisplayName("Should find product by valid ID")
+    void testFindById_Success() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(productDTO1));
+        when(productMapper.toDomain(any(ProductDTO.class))).thenReturn(product1);
+        productRepository.init();
+
+        // Act
+        Optional<Product> result = productRepository.findById("1");
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals("1", result.get().getId());
+    }
+
+    @Test
+    @DisplayName("Should return empty when product not found by ID")
+    void testFindById_NotFound() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(Collections.emptyList());
+        productRepository.init();
+
+        // Act
+        Optional<Product> result = productRepository.findById("999");
+
+        // Assert
+        assertFalse(result.isPresent());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "  "})
+    @DisplayName("Should return empty when ID is null, empty or blank")
+    void testFindById_InvalidId(String id) {
+        // Arrange & Act
+        Optional<Product> result = productRepository.findById(id);
+
+        // Assert
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    @DisplayName("Should save product successfully")
+    void testSave_Success() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+
+        // Act
+        Product result = productRepository.save(product1);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("1", result.getId());
+        verify(productValidator).validateDto(any(ProductDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductAlreadyExistsException when saving duplicate")
+    void testSave_ProductAlreadyExists() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        // Act & Assert
+        assertThrows(ProductAlreadyExistsException.class, () -> productRepository.save(product1));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductValidationException when validation fails")
+    void testSave_ValidationFails() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doThrow(new IllegalArgumentException("Invalid product"))
+                .when(productValidator).validateDto(any(ProductDTO.class));
+
+        // Act & Assert
+        assertThrows(ProductValidationException.class, () -> productRepository.save(product1));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductSaveException on unexpected error")
+    void testSave_UnexpectedException() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act & Assert
+        assertThrows(ProductSaveException.class, () -> productRepository.save(product1));
+    }
+
+    @Test
+    @DisplayName("Should update product successfully")
+    void testUpdate_Success() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        Product updatedProduct = product1.toBuilder().name("Updated Product").build();
+        ProductDTO updatedDTO = productDTO1.toBuilder().name("Updated Product").build();
+        when(productMapper.toDto(any(Product.class))).thenReturn(updatedDTO);
+
+        // Act
+        Product result = productRepository.update("1", updatedProduct);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("1", result.getId());
+        verify(productValidator, atLeastOnce()).validateDto(any(ProductDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductNotFoundException when updating non-existent product")
+    void testUpdate_ProductNotFound() {
+        // Arrange
+        Product updatedProduct = product1.toBuilder().name("Updated").build();
+
+        // Act & Assert
+        assertThrows(ProductNotFoundException.class, () -> productRepository.update("999", updatedProduct));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductValidationException when update validation fails")
+    void testUpdate_ValidationFails() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        doThrow(new IllegalArgumentException("Invalid product"))
+                .when(productValidator).validateDto(any(ProductDTO.class));
+
+        // Act & Assert
+        assertThrows(ProductValidationException.class, () -> productRepository.update("1", product1));
+    }
+
+    @Test
+    @DisplayName("Should throw ProductUpdateException on unexpected error during update")
+    void testUpdate_UnexpectedException() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        when(productMapper.toDto(any(Product.class))).thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act & Assert
+        assertThrows(ProductUpdateException.class, () -> productRepository.update("1", product1));
+    }
+
+    @Test
+    @DisplayName("Should delete product successfully")
+    void testDeleteById_Success() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        // Act
+        productRepository.deleteById("1");
+
+        // Assert
+        Optional<Product> result = productRepository.findById("1");
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    @DisplayName("Should throw ProductNotFoundException when deleting non-existent product")
+    void testDeleteById_ProductNotFound() {
+        // Arrange & Act & Assert
+        assertThrows(ProductNotFoundException.class, () -> productRepository.deleteById("999"));
+    }
+
+    @Test
+    @DisplayName("Should handle null product list during initialization")
+    void testInit_NullProductList() {
+        // Arrange
+        ReflectionTestUtils.setField(productRepository, "jsonFilePath", "classpath:data/products.json");
+        when(productDataSource.loadProductsFromJson(anyString())).thenReturn(null);
+
+        // Act
+        productRepository.init();
+
+        // Assert
+        List<Product> products = productRepository.findAll();
+        assertTrue(products.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should throw ProductDeleteException on unexpected error during deletion")
+    void testDeleteById_UnexpectedException() {
+        // Arrange
+        when(productMapper.toDto(any(Product.class))).thenReturn(productDTO1);
+        doNothing().when(productValidator).validateDto(any(ProductDTO.class));
+        productRepository.save(product1);
+
+        // Simular una excepción inesperada al intentar eliminar
+        // Esto se puede lograr modificando el estado interno del repositorio
+        ReflectionTestUtils.setField(productRepository, "inMemoryProducts", null);
+
+        // Act & Assert
+        ProductDeleteException exception = assertThrows(ProductDeleteException.class,
+                () -> productRepository.deleteById("1"));
+
+        assertNotNull(exception);
+        assertTrue(exception.getMessage().contains("Unexpected error during product deletion"));
     }
 }

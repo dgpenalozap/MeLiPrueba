@@ -16,7 +16,7 @@ import java.util.Map;
  * @Builder provides builder pattern
  */
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
@@ -27,4 +27,5 @@ public class ProductDTO {
     private double price;
     private double rating;
     private Map<String, String> specifications;
+
 }

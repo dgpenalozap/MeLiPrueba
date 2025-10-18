@@ -79,7 +79,7 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Invalid username or password"));
+                .andExpect(jsonPath("$.message").value("Invalid username or password"));
     }
 
     @Test
@@ -98,7 +98,7 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Invalid username or password"));
+                .andExpect(jsonPath("$.message").value("Invalid username or password"));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Username and password are required"));
+                .andExpect(jsonPath("$.message").value("Username and password are required"));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Username and password are required"));
+                .andExpect(jsonPath("$.message").value("Username and password are required"));
     }
 
     @Test
@@ -190,7 +190,10 @@ public class AuthenticationIntegrationTest {
         // Act & Assert
         mockMvc.perform(get("/api/products")
                         .header("Authorization", "Bearer " + invalidToken))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));
     }
 
     @Test
@@ -202,7 +205,10 @@ public class AuthenticationIntegrationTest {
         // Act & Assert
         mockMvc.perform(get("/api/products")
                         .header("Authorization", malformedHeader))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));
     }
 
     @Test
@@ -210,6 +216,9 @@ public class AuthenticationIntegrationTest {
     void request_shouldReturn401_withoutAuthHeader() throws Exception {
         // Act & Assert
         mockMvc.perform(get("/api/products"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));
     }
 }
