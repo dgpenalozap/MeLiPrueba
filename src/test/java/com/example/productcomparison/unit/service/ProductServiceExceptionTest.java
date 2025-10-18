@@ -1,7 +1,6 @@
 package com.example.productcomparison.unit.service;
 
 import com.example.productcomparison.exception.repository.ProductAlreadyExistsException;
-import com.example.productcomparison.exception.repository.ProductDataAccessException;
 import com.example.productcomparison.exception.service.InvalidParameterException;
 import com.example.productcomparison.exception.service.InvalidPriceRangeException;
 import com.example.productcomparison.exception.service.InvalidRatingException;
@@ -48,51 +47,6 @@ class ProductServiceExceptionTest {
     }
 
     @Test
-    @DisplayName("createProduct should throw InvalidParameterException when name is null")
-    void createProduct_ThrowsInvalidParameterException_WhenNameIsNull() {
-        Product product = createValidProduct("1", null, 100.0, 4.5);
-
-        assertThrows(InvalidParameterException.class, () -> productService.createProduct(product));
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("createProduct should throw InvalidParameterException when name is empty")
-    void createProduct_ThrowsInvalidParameterException_WhenNameIsEmpty() {
-        Product product = createValidProduct("1", "   ", 100.0, 4.5);
-
-        assertThrows(InvalidParameterException.class, () -> productService.createProduct(product));
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("createProduct should throw InvalidPriceRangeException when price is negative")
-    void createProduct_ThrowsInvalidPriceRangeException_WhenPriceIsNegative() {
-        Product product = createValidProduct("1", "Test Product", -10.0, 4.5);
-
-        assertThrows(InvalidPriceRangeException.class, () -> productService.createProduct(product));
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("createProduct should throw InvalidRatingException when rating is below 0")
-    void createProduct_ThrowsInvalidRatingException_WhenRatingBelowZero() {
-        Product product = createValidProduct("1", "Test Product", 100.0, -1.0);
-
-        assertThrows(InvalidRatingException.class, () -> productService.createProduct(product));
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("createProduct should throw InvalidRatingException when rating is above 5")
-    void createProduct_ThrowsInvalidRatingException_WhenRatingAboveFive() {
-        Product product = createValidProduct("1", "Test Product", 100.0, 6.0);
-
-        assertThrows(InvalidRatingException.class, () -> productService.createProduct(product));
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
     @DisplayName("createProduct should save product when valid")
     void createProduct_SavesProduct_WhenValid() {
         Product product = createValidProduct("1", "Test Product", 100.0, 4.5);
@@ -119,33 +73,6 @@ class ProductServiceExceptionTest {
         Product product = createValidProduct("1", "Test Product", 100.0, 4.5);
 
         assertThrows(InvalidParameterException.class, () -> productService.updateProduct("   ", product));
-        verify(productRepository, never()).update(anyString(), any());
-    }
-
-    @Test
-    @DisplayName("updateProduct should throw InvalidParameterException when name is null")
-    void updateProduct_ThrowsInvalidParameterException_WhenNameIsNull() {
-        Product product = createValidProduct("1", null, 100.0, 4.5);
-
-        assertThrows(InvalidParameterException.class, () -> productService.updateProduct("1", product));
-        verify(productRepository, never()).update(anyString(), any());
-    }
-
-    @Test
-    @DisplayName("updateProduct should throw InvalidPriceRangeException when price is negative")
-    void updateProduct_ThrowsInvalidPriceRangeException_WhenPriceIsNegative() {
-        Product product = createValidProduct("1", "Test Product", -10.0, 4.5);
-
-        assertThrows(InvalidPriceRangeException.class, () -> productService.updateProduct("1", product));
-        verify(productRepository, never()).update(anyString(), any());
-    }
-
-    @Test
-    @DisplayName("updateProduct should throw InvalidRatingException when rating is invalid")
-    void updateProduct_ThrowsInvalidRatingException_WhenRatingIsInvalid() {
-        Product product = createValidProduct("1", "Test Product", 100.0, 6.0);
-
-        assertThrows(InvalidRatingException.class, () -> productService.updateProduct("1", product));
         verify(productRepository, never()).update(anyString(), any());
     }
 
@@ -192,16 +119,6 @@ class ProductServiceExceptionTest {
         doThrow(new ProductNotFoundException("1")).when(productRepository).deleteById("1");
 
         assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct("1"));
-    }
-
-    @Test
-    @DisplayName("generateRandomProduct should throw ProductDataAccessException when save fails")
-    void generateRandomProduct_ThrowsProductDataAccessException_WhenSaveFails() {
-        Product randomProduct = createValidProduct("gen-1", "Random Product", 100.0, 4.5);
-        when(aiProductGenerator.generateRandomProduct()).thenReturn(randomProduct);
-        when(productRepository.save(any())).thenThrow(new RuntimeException("Save failed"));
-
-        assertThrows(ProductDataAccessException.class, () -> productService.generateRandomProduct());
     }
 
     @Test

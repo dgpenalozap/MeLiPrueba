@@ -1,6 +1,5 @@
 package com.example.productcomparison.service;
 
-import com.example.productcomparison.exception.repository.ProductDataAccessException;
 import com.example.productcomparison.exception.service.*;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.repository.IProductRepository;
@@ -47,75 +46,29 @@ public class ProductService implements IProductService {
 
     @Override
     public Product createProduct(Product product) {
-        try {
-            if (product.getName() == null || product.getName().trim().isEmpty()) {
-                throw new InvalidParameterException("name", product.getName(), "Product name cannot be empty");
-            }
-            if (product.getPrice() < 0) {
-                throw new InvalidPriceRangeException(product.getPrice(), 0, "Product price cannot be negative");
-            }
-            if (product.getRating() < 0 || product.getRating() > 5) {
-                throw new InvalidRatingException(product.getRating());
-            }
-            
-            return productRepository.save(product);
-        } catch (InvalidParameterException | InvalidPriceRangeException | InvalidRatingException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to create product: {}", product.getId(), e);
-            throw e;
-        }
+        return productRepository.save(product);
     }
 
     @Override
     public Product generateRandomProduct() {
-        try {
-            Product randomProduct = aiProductGenerator.generateRandomProduct();
-            return productRepository.save(randomProduct);
-        } catch (Exception e) {
-            log.error("Failed to generate and save random product", e);
-            throw new ProductDataAccessException("Failed to generate random product", e);
-        }
+        Product randomProduct = aiProductGenerator.generateRandomProduct();
+        return productRepository.save(randomProduct);
     }
 
     @Override
     public Product updateProduct(String id, Product product) {
-        try {
-            if (id.trim().isEmpty()) {
-                throw new InvalidParameterException("id", id, "Product ID cannot be empty");
-            }
-            if (product.getName() == null || product.getName().trim().isEmpty()) {
-                throw new InvalidParameterException("name", product.getName(), "Product name cannot be empty");
-            }
-            if (product.getPrice() < 0) {
-                throw new InvalidPriceRangeException(product.getPrice(), 0, "Product price cannot be negative");
-            }
-            if (product.getRating() < 0 || product.getRating() > 5) {
-                throw new InvalidRatingException(product.getRating());
-            }
-            
-            return productRepository.update(id, product);
-        } catch (InvalidParameterException | InvalidPriceRangeException | InvalidRatingException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to update product: {}", id, e);
-            throw e;
+        if (id.trim().isEmpty()) {
+            throw new InvalidParameterException("id", id, "Product ID cannot be empty");
         }
+        return productRepository.update(id, product);
     }
 
     @Override
     public void deleteProduct(String id) {
-        try {
-            if (id.trim().isEmpty()) {
-                throw new InvalidParameterException("id", id, "Product ID cannot be empty");
-            }
-            productRepository.deleteById(id);
-        } catch (InvalidParameterException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to delete product: {}", id, e);
-            throw e;
+        if (id.trim().isEmpty()) {
+            throw new InvalidParameterException("id", id, "Product ID cannot be empty");
         }
+        productRepository.deleteById(id);
     }
 
     @Override

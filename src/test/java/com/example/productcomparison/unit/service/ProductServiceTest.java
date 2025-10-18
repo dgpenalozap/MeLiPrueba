@@ -80,45 +80,6 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("createProduct should throw exception for empty name")
-    void createProduct_EmptyName_ThrowsException() {
-        Product invalidProduct = Product.builder()
-                .id("test-001")
-                .name("")
-                .price(99.99)
-                .rating(4.0)
-                .build();
-        
-        assertThrows(InvalidParameterException.class, () -> productService.createProduct(invalidProduct));
-    }
-
-    @Test
-    @DisplayName("createProduct should throw exception for negative price")
-    void createProduct_NegativePrice_ThrowsException() {
-        Product invalidProduct = Product.builder()
-                .id("test-001")
-                .name("Test Product")
-                .price(-10.0)
-                .rating(4.0)
-                .build();
-        
-        assertThrows(Exception.class, () -> productService.createProduct(invalidProduct));
-    }
-
-    @Test
-    @DisplayName("createProduct should throw exception for invalid rating")
-    void createProduct_InvalidRating_ThrowsException() {
-        Product invalidProduct = Product.builder()
-                .id("test-001")
-                .name("Test Product")
-                .price(99.99)
-                .rating(6.0)
-                .build();
-        
-        assertThrows(InvalidRatingException.class, () -> productService.createProduct(invalidProduct));
-    }
-
-    @Test
     @DisplayName("generateRandomProduct should create random product")
     void generateRandomProduct_CreatesSuccessfully() {
         Product generatedProduct = Product.builder()

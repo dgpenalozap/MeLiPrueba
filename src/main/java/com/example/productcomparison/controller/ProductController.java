@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,7 +61,7 @@ public class ProductController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequest request) {
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody CreateProductRequest request) {
         Product product = Product.builder()
                 .id(request.getId())
                 .name(request.getName())
@@ -106,7 +107,7 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(
             @Parameter(description = "Product ID to update", required = true, example = "laptop-001")
             @PathVariable String id,
-            @RequestBody CreateProductRequest request) {
+            @Valid @RequestBody CreateProductRequest request) {
         Product product = Product.builder()
                 .name(request.getName())
                 .imageUrl(request.getImageUrl())
