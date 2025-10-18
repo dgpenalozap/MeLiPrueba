@@ -1,5 +1,7 @@
 package com.example.productcomparison.exception;
 
+import com.example.productcomparison.exception.repository.*;
+import com.example.productcomparison.exception.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,106 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    /**
+     * Handle ProductAlreadyExistsException - Returns 409 Conflict
+     */
+    @ExceptionHandler(ProductAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleProductAlreadyExistsException(
+            ProductAlreadyExistsException ex, HttpServletRequest request) {
+        
+        log.warn("Product already exists: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .errorCode("PRODUCT_ALREADY_EXISTS")
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * Handle ProductSaveException - Returns 500 Internal Server Error
+     */
+    @ExceptionHandler(ProductSaveException.class)
+    public ResponseEntity<ErrorResponse> handleProductSaveException(
+            ProductSaveException ex, HttpServletRequest request) {
+        
+        log.error("Failed to save product: {}", ex.getMessage(), ex);
+        
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .errorCode("PRODUCT_SAVE_ERROR")
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Handle ProductUpdateException - Returns 500 Internal Server Error
+     */
+    @ExceptionHandler(ProductUpdateException.class)
+    public ResponseEntity<ErrorResponse> handleProductUpdateException(
+            ProductUpdateException ex, HttpServletRequest request) {
+        
+        log.error("Failed to update product: {}", ex.getMessage(), ex);
+        
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .errorCode("PRODUCT_UPDATE_ERROR")
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Handle ProductDeleteException - Returns 500 Internal Server Error
+     */
+    @ExceptionHandler(ProductDeleteException.class)
+    public ResponseEntity<ErrorResponse> handleProductDeleteException(
+            ProductDeleteException ex, HttpServletRequest request) {
+        
+        log.error("Failed to delete product: {}", ex.getMessage(), ex);
+        
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .errorCode("PRODUCT_DELETE_ERROR")
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Handle ProductValidationException - Returns 400 Bad Request
+     */
+    @ExceptionHandler(ProductValidationException.class)
+    public ResponseEntity<ErrorResponse> handleProductValidationException(
+            ProductValidationException ex, HttpServletRequest request) {
+        
+        log.warn("Product validation failed: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builderWithTimestamp()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .errorCode("PRODUCT_VALIDATION_ERROR")
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
     /**
      * Handle ProductNotFoundException - Returns 404 Not Found

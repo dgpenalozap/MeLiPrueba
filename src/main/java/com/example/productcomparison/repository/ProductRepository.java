@@ -1,7 +1,7 @@
 package com.example.productcomparison.repository;
 
-import com.example.productcomparison.exception.DataSourceInitializationException;
-import com.example.productcomparison.exception.ProductDataAccessException;
+import com.example.productcomparison.exception.repository.*;
+import com.example.productcomparison.exception.service.ProductNotFoundException;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.model.ProductDTO;
 import jakarta.annotation.PostConstruct;
@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>{@link ProductDataAccessException} - Thrown when data loading fails</li>
  *   <li>{@link IllegalArgumentException} - Thrown on invalid operations (duplicates, not found)</li>
  * </ul>
+ *
  * @see Product
  * @see ProductDTO
  * @see IProductRepository
@@ -69,7 +70,7 @@ public class ProductRepository implements IProductRepository {
     private static final String ERROR_LOAD_PRODUCTS = "Failed to load products from ";
     private static final String ERROR_PRODUCT_EXISTS = "Product with ID %s already exists";
     private static final String ERROR_PRODUCT_NOT_FOUND = "Product with ID %s not found";
-    private static final String WARN_INVALID_PRODUCT_DATA = "Invalid product data from source, skipping product with ID: {}";
+    private static final String ERROR_LOG_MESSAGE_FORMAT = "{} for product: {}";
 
 
     @PostConstruct
@@ -92,13 +93,32 @@ public class ProductRepository implements IProductRepository {
     }
 
     private void loadInitialData() {
-        loadProductsFromFile().forEach(dto -> {
-            Product product = productMapper.toDomain(dto);
-            if (productMapper.validateProduct(product)) {
-                inMemoryProducts.put(product.getId(), product);
-            }
-        });
+        try {
+            List<ProductDTO> dtos = loadProductsFromFile();
+            dtos.forEach(dto -> {
+                try {
+                    Product product = productMapper.toDomain(dto);
+                    if (productMapper.validateProduct(product)) {
+                        inMemoryProducts.put(product.getId(), product);
+                    } else {
+                        log.warn("Product {} ignored: validation failed", product.getId());
+                    }
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid product data from source, skipping product with ID: {}",
+                            dto.getId(), e);
+                }
+            });
+            log.info("Successfully loaded {} products into memory", inMemoryProducts.size());
+        } catch (ProductDataAccessException e) {
+            log.error("Failed to load initial product data", e);
+            throw e;
+        } catch (Exception e) {
+            String errorMessage = "Unexpected error during initial data load";
+            log.error(errorMessage, e);
+            throw new ProductDataAccessException(errorMessage, e);
+        }
     }
+
 
     @Override
     public List<Product> findAll() {
@@ -115,37 +135,75 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public Product save(Product product) {
-        productMapper.validateDto(productMapper.toDto(product));
-        if (inMemoryProducts.containsKey(product.getId())) {
-            String errorMessage = String.format(ERROR_PRODUCT_EXISTS, product.getId());
-            log.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
+        try {
+            productMapper.validateDto(productMapper.toDto(product));
+
+            if (inMemoryProducts.containsKey(product.getId())) {
+                String errorMessage = String.format(ERROR_PRODUCT_EXISTS, product.getId());
+                log.error(errorMessage);
+                throw new ProductAlreadyExistsException(product.getId());
+            }
+
+            inMemoryProducts.put(product.getId(), product);
+            log.info("Product saved successfully: {}", product.getId());
+            return product;
+        } catch (ProductAlreadyExistsException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            log.error("Validation failed for product: {}", product.getId(), e);
+            throw new ProductValidationException("Product validation failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+            String errorMessage = "Unexpected error during product save";
+            log.error(ERROR_LOG_MESSAGE_FORMAT, errorMessage, product.getId(), e);
+            throw new ProductSaveException(product.getId(), errorMessage, e);
         }
-        inMemoryProducts.put(product.getId(), product);
-        return product;
     }
 
     @Override
     public Product update(String id, Product product) {
-        if (!inMemoryProducts.containsKey(id)) {
-            String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
-            log.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
+        try {
+            if (!inMemoryProducts.containsKey(id)) {
+                String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
+                log.error(errorMessage);
+                throw new ProductNotFoundException(id);
+            }
+
+            Product updatedProduct = product.toBuilder().id(id).build();
+            productMapper.validateDto(productMapper.toDto(updatedProduct));
+
+            inMemoryProducts.put(id, updatedProduct);
+            log.info("Product updated successfully: {}", id);
+            return updatedProduct;
+        } catch (ProductNotFoundException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            log.error("Validation failed for product update: {}", id, e);
+            throw new ProductValidationException("Product validation failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+            String errorMessage = "Unexpected error during product update";
+            log.error(ERROR_LOG_MESSAGE_FORMAT, errorMessage, id, e);
+            throw new ProductUpdateException(id, errorMessage, e);
         }
-        Product updatedProduct = product.toBuilder().id(id).build();
-        productMapper.validateDto(productMapper.toDto(updatedProduct));
-        inMemoryProducts.put(id, updatedProduct);
-        return updatedProduct;
     }
 
     @Override
     public void deleteById(String id) {
-        if (!inMemoryProducts.containsKey(id)) {
-            String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
-            log.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
+        try {
+            if (!inMemoryProducts.containsKey(id)) {
+                String errorMessage = String.format(ERROR_PRODUCT_NOT_FOUND, id);
+                log.error(errorMessage);
+                throw new ProductNotFoundException(id);
+            }
+
+            inMemoryProducts.remove(id);
+            log.info("Product deleted successfully: {}", id);
+        } catch (ProductNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            String errorMessage = "Unexpected error during product deletion";
+            log.error(ERROR_LOG_MESSAGE_FORMAT, errorMessage, id, e);
+            throw new ProductDeleteException(id, errorMessage, e);
         }
-        inMemoryProducts.remove(id);
     }
 
 }

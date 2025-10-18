@@ -1,6 +1,6 @@
 package com.example.productcomparison.unit.repository;
 
-import com.example.productcomparison.exception.DataSourceInitializationException;
+import com.example.productcomparison.exception.repository.DataSourceInitializationException;
 import com.example.productcomparison.model.ProductDTO;
 import com.example.productcomparison.repository.ProductDataSource;
 import com.fasterxml.jackson.core.type.TypeReference;

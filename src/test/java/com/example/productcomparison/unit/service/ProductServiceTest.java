@@ -1,9 +1,9 @@
 package com.example.productcomparison.unit.service;
 
-import com.example.productcomparison.exception.CategoryNotFoundException;
-import com.example.productcomparison.exception.InvalidParameterException;
-import com.example.productcomparison.exception.InvalidRatingException;
-import com.example.productcomparison.exception.ProductNotFoundException;
+import com.example.productcomparison.exception.service.CategoryNotFoundException;
+import com.example.productcomparison.exception.service.InvalidParameterException;
+import com.example.productcomparison.exception.service.InvalidRatingException;
+import com.example.productcomparison.exception.service.ProductNotFoundException;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.repository.IProductRepository;
 import com.example.productcomparison.service.AIProductGenerator;
@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
