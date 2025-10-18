@@ -136,11 +136,10 @@ implementation 'dev.langchain4j:langchain4j-open-ai:0.33.0'
 
 ## ⚙️ Configuración
 
-**application.yaml:**
-```yaml
-openai:
-  api:
-    key: ${OPENAI_API_KEY:demo-key}
+**application.properties:**
+```properties
+# OpenAI Configuration (optional - for AI-powered product generation)
+openai.api.key=${OPENAI_API_KEY:demo-key}
 ```
 
 - Variable de entorno: `OPENAI_API_KEY`

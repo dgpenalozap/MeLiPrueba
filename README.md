@@ -144,11 +144,9 @@ To enable AI-powered generation with OpenAI:
 export OPENAI_API_KEY=your-api-key-here
 ```
 
-2. Or add it to `application.yaml`:
-```yaml
-openai:
-  api:
-    key: your-api-key-here
+2. Or edit `src/main/resources/application.properties`:
+```properties
+openai.api.key=your-api-key-here
 ```
 
 ### Usage
