@@ -72,10 +72,7 @@ public class ProductMapper {
         if (!isValidPrice(product.getPrice())) {
             return false;
         }
-        if (!isValidRating(product.getRating())) {
-            return false;
-        }
-        return true;
+        return isValidRating(product.getRating());
     }
 
     private boolean isValidPrice(Double price) {
