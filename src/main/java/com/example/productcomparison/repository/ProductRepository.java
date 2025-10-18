@@ -60,12 +60,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ProductRepository implements IProductRepository {
 
-    @Value("${product.data.json-file}")
-    private String jsonFilePath;
-
     private final ProductDataSource productDataSource;
     private final ProductMapper productMapper;
     private final ProductValidator productValidator;
+
+
+    @Value("${product.data.json-file}")
+    private String jsonFilePath;
+
     private final ConcurrentHashMap<String, Product> inMemoryProducts = new ConcurrentHashMap<>();
 
     private static final String ERROR_LOAD_PRODUCTS = "Failed to load products from ";

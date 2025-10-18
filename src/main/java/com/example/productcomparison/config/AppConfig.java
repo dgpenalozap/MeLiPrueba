@@ -22,8 +22,6 @@ public class AppConfig {
         return new ObjectMapper();
     }
 
-
-
     @Bean
     public OpenAPI productComparisonOpenAPI() {
         return new OpenAPI()

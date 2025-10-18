@@ -2,10 +2,12 @@ package com.example.productcomparison.repository;
 
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.model.ProductDTO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 @Component
+@RequiredArgsConstructor
 public class ProductValidator {
 
     public void validateDto(ProductDTO dto) {
