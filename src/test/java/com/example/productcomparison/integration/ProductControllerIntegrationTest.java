@@ -13,16 +13,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("ProductController Integration Tests")
+@DisplayName("ProductController Integration Tests with JWT Security")
 public class ProductControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private AuthIntegrationTestHelper authHelper;
+
     @Test
-    @DisplayName("GET /api/products should return all products")
-    void listProducts_shouldReturnAllProducts() throws Exception {
+    @DisplayName("GET /api/products should return 401 without authentication")
+    void listProducts_shouldReturn401_withoutAuth() throws Exception {
         mockMvc.perform(get("/api/products"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /api/products should return all products with valid token")
+    void listProducts_shouldReturnAllProducts() throws Exception {
+        mockMvc.perform(get("/api/products")
+                        .header("Authorization", authHelper.getAdminBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -30,9 +41,21 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/products/{id} should return a product when found")
+    @DisplayName("GET /api/products should work with user token (read permission)")
+    void listProducts_shouldWorkWithUserToken() throws Exception {
+        mockMvc.perform(get("/api/products")
+                        .header("Authorization", authHelper.getUserBearerToken()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(38));
+    }
+
+    @Test
+    @DisplayName("GET /api/products/{id} should return a product when found with authentication")
     void getProduct_shouldReturnProduct_whenFound() throws Exception {
-        mockMvc.perform(get("/api/products/laptop-001"))
+        mockMvc.perform(get("/api/products/laptop-001")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value("laptop-001"))
@@ -42,12 +65,50 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/{id} should return 404 when not found")
     void getProduct_shouldReturnNotFound_whenNotFound() throws Exception {
-        mockMvc.perform(get("/api/products/non-existent-id"))
+        mockMvc.perform(get("/api/products/non-existent-id")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("POST /api/products should create a new product")
+    @DisplayName("POST /api/products should return 401 without authentication")
+    void createProduct_shouldReturn401_withoutAuth() throws Exception {
+        String requestBody = """
+            {
+                "id": "test-no-auth",
+                "name": "Test Product",
+                "price": 199.99,
+                "rating": 4.5
+            }
+            """;
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /api/products should return 403 with user token (insufficient permissions)")
+    void createProduct_shouldReturn403_withUserToken() throws Exception {
+        String requestBody = """
+            {
+                "id": "test-forbidden",
+                "name": "Test Product",
+                "price": 199.99,
+                "rating": 4.5
+            }
+            """;
+
+        mockMvc.perform(post("/api/products")
+                        .header("Authorization", authHelper.getUserBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("POST /api/products should create a new product with admin token")
     void createProduct_shouldCreateNewProduct() throws Exception {
         String requestBody = """
             {
@@ -65,6 +126,7 @@ public class ProductControllerIntegrationTest {
             """;
 
         mockMvc.perform(post("/api/products")
+                        .header("Authorization", authHelper.getAdminBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
@@ -73,7 +135,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/products should return 400 for invalid product")
+    @DisplayName("POST /api/products should return 400 for invalid product with admin token")
     void createProduct_shouldReturnBadRequest_forInvalidProduct() throws Exception {
         String requestBody = """
             {
@@ -85,15 +147,17 @@ public class ProductControllerIntegrationTest {
             """;
 
         mockMvc.perform(post("/api/products")
+                        .header("Authorization", authHelper.getAdminBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("POST /api/products/generate should generate a random product")
+    @DisplayName("POST /api/products/generate should generate a random product with admin token")
     void generateRandomProduct_shouldGenerateProduct() throws Exception {
-        mockMvc.perform(post("/api/products/generate"))
+        mockMvc.perform(post("/api/products/generate")
+                        .header("Authorization", authHelper.getAdminBearerToken()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").exists())
@@ -102,7 +166,50 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /api/products/{id} should update existing product")
+    @DisplayName("POST /api/products/generate should return 403 with user token")
+    void generateRandomProduct_shouldReturn403_withUserToken() throws Exception {
+        mockMvc.perform(post("/api/products/generate")
+                        .header("Authorization", authHelper.getUserBearerToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should return 401 without authentication")
+    void updateProduct_shouldReturn401_withoutAuth() throws Exception {
+        String requestBody = """
+            {
+                "name": "Updated Product Name",
+                "price": 299.99,
+                "rating": 4.8
+            }
+            """;
+
+        mockMvc.perform(put("/api/products/laptop-001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should return 403 with user token")
+    void updateProduct_shouldReturn403_withUserToken() throws Exception {
+        String requestBody = """
+            {
+                "name": "Updated Product Name",
+                "price": 299.99,
+                "rating": 4.8
+            }
+            """;
+
+        mockMvc.perform(put("/api/products/laptop-001")
+                        .header("Authorization", authHelper.getUserBearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("PUT /api/products/{id} should update existing product with admin token")
     void updateProduct_shouldUpdateExistingProduct() throws Exception {
         String requestBody = """
             {
@@ -119,6 +226,7 @@ public class ProductControllerIntegrationTest {
             """;
 
         mockMvc.perform(put("/api/products/laptop-001")
+                        .header("Authorization", authHelper.getAdminBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -127,7 +235,7 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /api/products/{id} should return 404 for non-existent product")
+    @DisplayName("PUT /api/products/{id} should return 404 for non-existent product with admin token")
     void updateProduct_shouldReturnNotFound_forNonExistentProduct() throws Exception {
         String requestBody = """
             {
@@ -138,13 +246,29 @@ public class ProductControllerIntegrationTest {
             """;
 
         mockMvc.perform(put("/api/products/non-existent-id")
+                        .header("Authorization", authHelper.getAdminBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("DELETE /api/products/{id} should delete existing product")
+    @DisplayName("DELETE /api/products/{id} should return 401 without authentication")
+    void deleteProduct_shouldReturn401_withoutAuth() throws Exception {
+        mockMvc.perform(delete("/api/products/laptop-001"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/products/{id} should return 403 with user token")
+    void deleteProduct_shouldReturn403_withUserToken() throws Exception {
+        mockMvc.perform(delete("/api/products/laptop-001")
+                        .header("Authorization", authHelper.getUserBearerToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("DELETE /api/products/{id} should delete existing product with admin token")
     void deleteProduct_shouldDeleteExistingProduct() throws Exception {
         // First create a product to delete
         String createBody = """
@@ -157,26 +281,30 @@ public class ProductControllerIntegrationTest {
             """;
         
         mockMvc.perform(post("/api/products")
+                        .header("Authorization", authHelper.getAdminBearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody))
                 .andExpect(status().isCreated());
 
         // Then delete it
-        mockMvc.perform(delete("/api/products/delete-test"))
+        mockMvc.perform(delete("/api/products/delete-test")
+                        .header("Authorization", authHelper.getAdminBearerToken()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("DELETE /api/products/{id} should return 404 for non-existent product")
+    @DisplayName("DELETE /api/products/{id} should return 404 for non-existent product with admin token")
     void deleteProduct_shouldReturnNotFound_forNonExistentProduct() throws Exception {
-        mockMvc.perform(delete("/api/products/non-existent-id"))
+        mockMvc.perform(delete("/api/products/non-existent-id")
+                        .header("Authorization", authHelper.getAdminBearerToken()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("GET /api/products/search should return matching products")
+    @DisplayName("GET /api/products/search should return matching products with authentication")
     void searchProducts_shouldReturnMatchingProducts() throws Exception {
-        mockMvc.perform(get("/api/products/search").param("q", "gaming"))
+        mockMvc.perform(get("/api/products/search").param("q", "gaming")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -186,7 +314,8 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/search should return empty list for no matches")
     void searchProducts_shouldReturnEmptyList_forNoMatches() throws Exception {
-        mockMvc.perform(get("/api/products/search").param("q", "non-existent-query"))
+        mockMvc.perform(get("/api/products/search").param("q", "non-existent-query")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -194,9 +323,10 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/products/filter/price should return products in range")
+    @DisplayName("GET /api/products/filter/price should return products in range with authentication")
     void filterByPrice_shouldReturnProductsInRange() throws Exception {
-        mockMvc.perform(get("/api/products/filter/price").param("min", "1000").param("max", "1200"))
+        mockMvc.perform(get("/api/products/filter/price").param("min", "1000").param("max", "1200")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
@@ -205,14 +335,16 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/filter/price should return 400 for invalid range")
     void filterByPrice_shouldReturnBadRequest_forInvalidRange() throws Exception {
-        mockMvc.perform(get("/api/products/filter/price").param("min", "1200").param("max", "1000"))
+        mockMvc.perform(get("/api/products/filter/price").param("min", "1200").param("max", "1000")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("GET /api/products/filter/rating should return products above rating")
+    @DisplayName("GET /api/products/filter/rating should return products above rating with authentication")
     void filterByRating_shouldReturnProductsAboveRating() throws Exception {
-        mockMvc.perform(get("/api/products/filter/rating").param("min", "4.8"))
+        mockMvc.perform(get("/api/products/filter/rating").param("min", "4.8")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
@@ -221,14 +353,16 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/filter/rating should return 400 for invalid rating")
     void filterByRating_shouldReturnBadRequest_forInvalidRating() throws Exception {
-        mockMvc.perform(get("/api/products/filter/rating").param("min", "6.0"))
+        mockMvc.perform(get("/api/products/filter/rating").param("min", "6.0")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("GET /api/products/filter/category/{category} should return products in category")
+    @DisplayName("GET /api/products/filter/category/{category} should return products in category with authentication")
     void filterByCategory_shouldReturnProductsInCategory() throws Exception {
-        mockMvc.perform(get("/api/products/filter/category/Laptops"))
+        mockMvc.perform(get("/api/products/filter/category/Laptops")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
@@ -237,14 +371,16 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/filter/category/{category} should return 404 for non-existent category")
     void filterByCategory_shouldReturnNotFound_forNonExistentCategory() throws Exception {
-        mockMvc.perform(get("/api/products/filter/category/non-existent-category"))
+        mockMvc.perform(get("/api/products/filter/category/non-existent-category")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("GET /api/products/categories should return all categories")
+    @DisplayName("GET /api/products/categories should return all categories with authentication")
     void getAllCategories_shouldReturnAllCategories() throws Exception {
-        mockMvc.perform(get("/api/products/categories"))
+        mockMvc.perform(get("/api/products/categories")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -252,9 +388,10 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/products/compare should return products to compare")
+    @DisplayName("GET /api/products/compare should return products to compare with authentication")
     void compareProducts_shouldReturnProductsToCompare() throws Exception {
-        mockMvc.perform(get("/api/products/compare").param("ids", "laptop-001,laptop-002"))
+        mockMvc.perform(get("/api/products/compare").param("ids", "laptop-001,laptop-002")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -264,32 +401,36 @@ public class ProductControllerIntegrationTest {
     @Test
     @DisplayName("GET /api/products/compare should return 404 if one ID is not found")
     void compareProducts_shouldReturnNotFound_ifOneIdIsNotFound() throws Exception {
-        mockMvc.perform(get("/api/products/compare").param("ids", "laptop-001,non-existent-id"))
+        mockMvc.perform(get("/api/products/compare").param("ids", "laptop-001,non-existent-id")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("GET /api/products/sort/price should return products sorted by price")
+    @DisplayName("GET /api/products/sort/price should return products sorted by price with authentication")
     void sortByPrice_shouldReturnProductsSortedByPrice() throws Exception {
-        mockMvc.perform(get("/api/products/sort/price").param("order", "asc"))
+        mockMvc.perform(get("/api/products/sort/price").param("order", "asc")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
-    @DisplayName("GET /api/products/sort/rating should return products sorted by rating")
+    @DisplayName("GET /api/products/sort/rating should return products sorted by rating with authentication")
     void sortByRating_shouldReturnProductsSortedByRating() throws Exception {
-        mockMvc.perform(get("/api/products/sort/rating").param("order", "desc"))
+        mockMvc.perform(get("/api/products/sort/rating").param("order", "desc")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
-    @DisplayName("GET /api/products/top should return top N products")
+    @DisplayName("GET /api/products/top should return top N products with authentication")
     void getTopRatedProducts_shouldReturnTopNProducts() throws Exception {
-        mockMvc.perform(get("/api/products/top").param("limit", "5"))
+        mockMvc.perform(get("/api/products/top").param("limit", "5")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -297,9 +438,10 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/products/filter/spec should return matching products")
+    @DisplayName("GET /api/products/filter/spec should return matching products with authentication")
     void findBySpecification_shouldReturnMatchingProducts() throws Exception {
-        mockMvc.perform(get("/api/products/filter/spec").param("key", "ram").param("value", "16GB"))
+        mockMvc.perform(get("/api/products/filter/spec").param("key", "ram").param("value", "16GB")
+                        .header("Authorization", authHelper.getUserBearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());

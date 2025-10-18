@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class ProductRepository implements IProductRepository {
 
     private final ProductDataSource productDataSource;
+    private final ProductMapper productMapper;
     private final ConcurrentHashMap<String, Product> inMemoryProducts = new ConcurrentHashMap<>();
 
     @Value("${product.data.json-file}")
@@ -57,9 +58,11 @@ public class ProductRepository implements IProductRepository {
 
     private void loadInitialData() {
         loadProductsFromFile().forEach(dto -> {
-            Product product = toDomain(dto);
-            if (validateProduct(product)) {
+            Product product = productMapper.toDomain(dto);
+            if (productMapper.validateProduct(product)) {
                 inMemoryProducts.put(product.getId(), product);
+            } else {
+                log.warn("Product {} ignored: validation failed", product.getId());
             }
         });
         log.info("Loaded {} products into memory", inMemoryProducts.size());
@@ -81,7 +84,7 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public Product save(Product product) {
-        validateDto(toDto(product));
+        productMapper.validateDto(productMapper.toDto(product));
         if (inMemoryProducts.containsKey(product.getId())) {
             throw new IllegalArgumentException("Product with ID " + product.getId() + " already exists");
         }
@@ -96,7 +99,7 @@ public class ProductRepository implements IProductRepository {
             throw new IllegalArgumentException("Product with ID " + id + " not found");
         }
         Product updatedProduct = product.toBuilder().id(id).build();
-        validateDto(toDto(updatedProduct));
+        productMapper.validateDto(productMapper.toDto(updatedProduct));
         inMemoryProducts.put(id, updatedProduct);
         log.info("Product updated: {}", id);
         return updatedProduct;
@@ -127,56 +130,5 @@ public class ProductRepository implements IProductRepository {
             log.error(errorMessage, e);
             throw new ProductDataAccessException(errorMessage, e);
         }
-    }
-
-    private Product toDomain(ProductDTO dto) {
-        validateDto(dto);
-        return Product.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .imageUrl(dto.getImageUrl())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .rating(dto.getRating())
-                .specifications(dto.getSpecifications())
-                .build();
-    }
-
-    private ProductDTO toDto(Product product) {
-        return ProductDTO.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .imageUrl(product.getImageUrl())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .rating(product.getRating())
-                .specifications(product.getSpecifications())
-                .build();
-    }
-
-    private void validateDto(ProductDTO dto) {
-        Assert.notNull(dto, "ProductDTO cannot be null");
-        Assert.hasText(dto.getId(), "Product ID cannot be null or empty");
-        Assert.hasText(dto.getName(), "Product name cannot be null or empty");
-    }
-
-    private boolean validateProduct(Product product) {
-        if (!isValidPrice(product.getPrice())) {
-            log.warn("Product {} ignored: invalid price", product.getId());
-            return false;
-        }
-        if (!isValidRating(product.getRating())) {
-            log.warn("Product {} ignored: rating out of range", product.getId());
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isValidPrice(Double price) {
-        return price != null && price >= 0;
-    }
-
-    private boolean isValidRating(Double rating) {
-        return rating == null || (rating >= 0 && rating <= 5);
     }
 }

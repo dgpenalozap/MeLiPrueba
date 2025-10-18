@@ -3,6 +3,8 @@ package com.example.productcomparison.unit.repository;
 import com.example.productcomparison.exception.ProductDataAccessException;
 import com.example.productcomparison.model.Product;
 import com.example.productcomparison.model.ProductDTO;
+import com.example.productcomparison.repository.ProductDataSource;
+import com.example.productcomparison.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

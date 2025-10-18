@@ -1,5 +1,6 @@
 package com.example.productcomparison.unit.model;
 
+import com.example.productcomparison.model.Product;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
