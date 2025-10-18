@@ -7,6 +7,7 @@ import com.example.productcomparison.model.ProductDTO;
 import com.example.productcomparison.repository.ProductDataSource;
 import com.example.productcomparison.repository.ProductMapper;
 import com.example.productcomparison.repository.ProductRepository;
+import com.example.productcomparison.repository.ProductValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class ProductRepositoryTest {
 
     @Spy
     private ProductMapper productMapper;
+
+    @Spy
+    private ProductValidator productValidator;
 
     @InjectMocks
     private ProductRepository productRepository;
@@ -408,7 +412,7 @@ class ProductRepositoryTest {
         when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of());
         productRepository.init();
         Product product = createValidProduct("1", "Producto válido");
-        doThrow(new RuntimeException("Error inesperado")).when(productMapper).validateDto(any());
+        doThrow(new RuntimeException("Error inesperado")).when(productValidator).validateDto(any());
 
         // Act & Assert
         ProductSaveException ex = assertThrows(ProductSaveException.class, () -> productRepository.save(product));
@@ -475,7 +479,7 @@ class ProductRepositoryTest {
         when(productDataSource.loadProductsFromJson(anyString())).thenReturn(List.of(dto));
         productRepository.init();
         Product product = createValidProduct("1", "Producto actualizado");
-        doThrow(new RuntimeException("Error inesperado")).when(productMapper).validateDto(any());
+        doThrow(new RuntimeException("Error inesperado")).when(productValidator).validateDto(any());
 
         // Act & Assert
         ProductUpdateException ex = assertThrows(ProductUpdateException.class, () -> productRepository.update("1", product));

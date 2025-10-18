@@ -6,6 +6,7 @@ import com.example.productcomparison.repository.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,7 @@ class ProductMapperTest {
 
     @BeforeEach
     void setUp() {
-        productMapper = new ProductMapper();
+        productMapper = Mappers.getMapper(ProductMapper.class);
     }
 
     @Test
@@ -51,36 +52,6 @@ class ProductMapperTest {
     }
 
     @Test
-    @DisplayName("toDomain should throw exception when DTO is null")
-    void toDomain_ThrowsException_WhenDTOIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> productMapper.toDomain(null));
-    }
-
-    @Test
-    @DisplayName("toDomain should throw exception when ID is null")
-    void toDomain_ThrowsException_WhenIdIsNull() {
-        ProductDTO dto = ProductDTO.builder()
-                .name("Test Product")
-                .price(99.99)
-                .rating(4.5)
-                .build();
-
-        assertThrows(IllegalArgumentException.class, () -> productMapper.toDomain(dto));
-    }
-
-    @Test
-    @DisplayName("toDomain should throw exception when name is null")
-    void toDomain_ThrowsException_WhenNameIsNull() {
-        ProductDTO dto = ProductDTO.builder()
-                .id("1")
-                .price(99.99)
-                .rating(4.5)
-                .build();
-
-        assertThrows(IllegalArgumentException.class, () -> productMapper.toDomain(dto));
-    }
-
-    @Test
     @DisplayName("toDto should convert Product to ProductDTO")
     void toDto_ConvertsProductToProductDTO() {
         Map<String, String> specs = new HashMap<>();
@@ -109,138 +80,32 @@ class ProductMapperTest {
     }
 
     @Test
-    @DisplayName("validateDto should throw exception when DTO is null")
-    void validateDto_ThrowsException_WhenDTOIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> productMapper.validateDto(null));
-    }
-
-    @Test
-    @DisplayName("validateDto should throw exception when ID is empty")
-    void validateDto_ThrowsException_WhenIdIsEmpty() {
-        ProductDTO dto = ProductDTO.builder()
-                .id("")
-                .name("Test Product")
-                .price(99.99)
-                .rating(4.5)
-                .build();
-
-        assertThrows(IllegalArgumentException.class, () -> productMapper.validateDto(dto));
-    }
-
-    @Test
-    @DisplayName("validateDto should throw exception when name is empty")
-    void validateDto_ThrowsException_WhenNameIsEmpty() {
-        ProductDTO dto = ProductDTO.builder()
-                .id("1")
-                .name("")
-                .price(99.99)
-                .rating(4.5)
-                .build();
-
-        assertThrows(IllegalArgumentException.class, () -> productMapper.validateDto(dto));
-    }
-
-    @Test
-    @DisplayName("validateDto should pass for valid DTO")
-    void validateDto_Passes_ForValidDTO() {
+    @DisplayName("toDomain should handle null values")
+    void toDomain_HandlesNullValues() {
         ProductDTO dto = ProductDTO.builder()
                 .id("1")
                 .name("Test Product")
-                .price(99.99)
-                .rating(4.5)
                 .build();
 
-        assertDoesNotThrow(() -> productMapper.validateDto(dto));
+        Product product = productMapper.toDomain(dto);
+
+        assertNotNull(product);
+        assertEquals("1", product.getId());
+        assertEquals("Test Product", product.getName());
     }
 
     @Test
-    @DisplayName("validateProduct should return true for valid product")
-    void validateProduct_ReturnsTrue_ForValidProduct() {
+    @DisplayName("toDto should handle null values")
+    void toDto_HandlesNullValues() {
         Product product = Product.builder()
                 .id("1")
                 .name("Test Product")
-                .price(99.99)
-                .rating(4.5)
                 .build();
 
-        assertTrue(productMapper.validateProduct(product));
-    }
+        ProductDTO dto = productMapper.toDto(product);
 
-    @Test
-    @DisplayName("validateProduct should return false for negative price")
-    void validateProduct_ReturnsFalse_ForNegativePrice() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(-10.0)
-                .rating(4.5)
-                .build();
-
-        assertFalse(productMapper.validateProduct(product));
-    }
-
-    @Test
-    @DisplayName("validateProduct should return false for rating above 5")
-    void validateProduct_ReturnsFalse_ForRatingAbove5() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(99.99)
-                .rating(5.5)
-                .build();
-
-        assertFalse(productMapper.validateProduct(product));
-    }
-
-    @Test
-    @DisplayName("validateProduct should return false for rating below 0")
-    void validateProduct_ReturnsFalse_ForRatingBelowZero() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(99.99)
-                .rating(-1.0)
-                .build();
-
-        assertFalse(productMapper.validateProduct(product));
-    }
-
-    @Test
-    @DisplayName("validateProduct should return true for rating of 0")
-    void validateProduct_ReturnsTrue_ForRatingZero() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(99.99)
-                .rating(0.0)
-                .build();
-
-        assertTrue(productMapper.validateProduct(product));
-    }
-
-    @Test
-    @DisplayName("validateProduct should return true for rating of 5")
-    void validateProduct_ReturnsTrue_ForRatingFive() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(99.99)
-                .rating(5.0)
-                .build();
-
-        assertTrue(productMapper.validateProduct(product));
-    }
-
-    @Test
-    @DisplayName("validateProduct should return true for price of 0")
-    void validateProduct_ReturnsTrue_ForPriceZero() {
-        Product product = Product.builder()
-                .id("1")
-                .name("Test Product")
-                .price(0.0)
-                .rating(4.5)
-                .build();
-
-        assertTrue(productMapper.validateProduct(product));
+        assertNotNull(dto);
+        assertEquals("1", dto.getId());
+        assertEquals("Test Product", dto.getName());
     }
 }

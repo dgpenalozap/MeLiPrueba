@@ -65,6 +65,7 @@ public class ProductRepository implements IProductRepository {
 
     private final ProductDataSource productDataSource;
     private final ProductMapper productMapper;
+    private final ProductValidator productValidator;
     private final ConcurrentHashMap<String, Product> inMemoryProducts = new ConcurrentHashMap<>();
 
     private static final String ERROR_LOAD_PRODUCTS = "Failed to load products from ";
@@ -98,7 +99,7 @@ public class ProductRepository implements IProductRepository {
             dtos.forEach(dto -> {
                 try {
                     Product product = productMapper.toDomain(dto);
-                    if (productMapper.validateProduct(product)) {
+                    if (productValidator.validateProduct(product)) {
                         inMemoryProducts.put(product.getId(), product);
                     } else {
                         log.warn("Product {} ignored: validation failed", product.getId());
@@ -136,7 +137,7 @@ public class ProductRepository implements IProductRepository {
     @Override
     public Product save(Product product) {
         try {
-            productMapper.validateDto(productMapper.toDto(product));
+            productValidator.validateDto(productMapper.toDto(product));
 
             if (inMemoryProducts.containsKey(product.getId())) {
                 String errorMessage = String.format(ERROR_PRODUCT_EXISTS, product.getId());
@@ -169,7 +170,7 @@ public class ProductRepository implements IProductRepository {
             }
 
             Product updatedProduct = product.toBuilder().id(id).build();
-            productMapper.validateDto(productMapper.toDto(updatedProduct));
+            productValidator.validateDto(productMapper.toDto(updatedProduct));
 
             inMemoryProducts.put(id, updatedProduct);
             log.info("Product updated successfully: {}", id);
