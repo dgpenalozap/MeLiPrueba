@@ -1,7 +1,7 @@
 # 🛍️ Product Comparison API
 
 
-> **RESTful API for product comparison with JWT Authentication, AI-powered data generation, and comprehensive CRUD operations**
+> **API RESTful para comparación de productos con autenticación JWT, generación de datos impulsada por IA y operaciones CRUD completas**
 
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
