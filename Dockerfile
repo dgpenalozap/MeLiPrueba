@@ -11,7 +11,7 @@ COPY build.gradle .
 COPY settings.gradle .
 
 # ✅ Fix: give execution permissions to gradlew
-RUN chmod +x gradlew
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 
 # Download dependencies (cached layer)
 RUN ./gradlew dependencies --no-daemon
