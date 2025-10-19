@@ -46,6 +46,10 @@ Si tienes el proyecto como archivo `.zip` o `.rar`:
    ```bash
    cd MeLiPrueba
    ```
+   ó
+   ```bash
+   cd MeLiPrueba-main
+   ```
 
 ### 2. Construir la Aplicación
 
