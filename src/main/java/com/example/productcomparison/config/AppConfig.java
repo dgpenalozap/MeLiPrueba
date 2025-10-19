@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -84,6 +85,10 @@ public class AppConfig {
                         new Server()
                                 .url("http://localhost:8080")
                                 .description("Local development server")
+                ))
+                .tags(List.of(
+                        new Tag().name("A. Authentication").description("JWT authentication endpoints"),
+                        new Tag().name("B. Products").description("Product management and comparison API")
                 ))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",

@@ -6,8 +6,9 @@ Follow these steps to build, test, and run the application.
 
 - **Java 17** or higher.
 - **Gradle** (Optional, as you can use the provided Gradle Wrapper).
+- **Docker** (Optional, for running with Docker).
 
-## Steps
+## Option 1: Run Locally with Gradle
 
 ### 1. Clone or Download the Project
 
@@ -59,12 +60,73 @@ gradlew.bat bootRun
 
 The application will start on the embedded Tomcat server, typically on port 8080.
 
-## 5. Access the API
+## Option 2: Run with Docker
 
-Once the application is running, you can access the following URLs:
+### 1. Build the Docker Image
+
+From the project's root directory, build the Docker image:
+
+```bash
+docker build -t product-comparison-app .
+```
+
+### 2. Run the Docker Container
+
+Run the application in a Docker container:
+
+```bash
+docker run -p 8080:8080 product-comparison-app
+```
+
+**With environment variables (optional):**
+```bash
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e OPENAI_API_KEY=your_api_key_here \
+  product-comparison-app
+```
+
+**Run in detached mode:**
+```bash
+docker run -d -p 8080:8080 --name product-comparison product-comparison-app
+```
+
+### 3. Docker Commands
+
+**View logs:**
+```bash
+docker logs product-comparison
+```
+
+**Follow logs:**
+```bash
+docker logs -f product-comparison
+```
+
+**Stop the container:**
+```bash
+docker stop product-comparison
+```
+
+**Remove the container:**
+```bash
+docker rm product-comparison
+```
+
+**Remove the image:**
+```bash
+docker rmi product-comparison-app
+```
+
+## Access the API
+
+Once the application is running (locally or in Docker), you can access the following URLs:
 
 - **Main API Endpoint:**
   [http://localhost:8080/api/products](http://localhost:8080/api/products)
 
 - **Swagger UI for Interactive Documentation:**
   [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+
+- **Health Check (if actuator is enabled):**
+  [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)

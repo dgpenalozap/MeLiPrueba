@@ -29,7 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
-@Tag(name = "Products", description = "Product management and comparison API")
+@Tag(name = "B. Products", description = "Product management and comparison API")
 public class ProductController {
 
     private final IProductService productService;

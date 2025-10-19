@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "JWT authentication endpoints")
+@Tag(name = "A. Authentication", description = "JWT authentication endpoints")
 public class AuthController {
 
     private final JwtUtil jwtUtil;

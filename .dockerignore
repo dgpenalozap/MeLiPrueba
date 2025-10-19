@@ -1,0 +1,54 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# IDE files
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.settings
+.project
+.classpath
+
+# Build directories
+build
+target
+out
+bin
+.gradle
+
+# Gradle wrapper jar (will be copied explicitly)
+!gradle/wrapper/gradle-wrapper.jar
+
+# Test and coverage reports
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Documentation
+README.md
+prompts.md
+run.md
+*.md
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.cache
