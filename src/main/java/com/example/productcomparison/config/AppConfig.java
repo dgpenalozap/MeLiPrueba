@@ -77,7 +77,7 @@ public class AppConfig {
                         .contact(new Contact()
                                 .name("Product Comparison Team")
                                 .email("dgpenalozap@gmail.com")
-                                .url("https://contact@example.comgithub.com/example/product-comparison"))
+                                .url("https://github.com/dgpenalozap"))
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
