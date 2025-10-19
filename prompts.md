@@ -1,85 +1,92 @@
-# Prompts & Tools Used with GenAI
+# 🚀 Prompts & Herramientas GenAI Utilizadas
 
-This file documents the prompts and AI tools used to generate and refactor this project.
+Este documento recopila los prompts y herramientas de IA empleadas para la generación, refactorización y documentación de este proyecto.
 
-## AI Tools Used
+---
 
-- **GitHub Copilot CLI**: For general command-line operations and file manipulation.
-- **Gemini CLI**: For code generation, refactoring, and documentation updates.
-- **GitHub Copilot (IntelliJ IDEA Plugin)**: For real-time code completion and suggestions within the IDE.
+## 🛠️ Herramientas de IA Utilizadas
 
-## Initial Project Generation
+| Herramienta                                 | Propósito principal                                              |
+|---------------------------------------------|------------------------------------------------------------------|
+| **GitHub Copilot CLI**                      | Operaciones en terminal y manipulación de archivos               |
+| **Gemini CLI**                              | Generación de código, refactorización y actualización de docs    |
+| **GitHub Copilot (IntelliJ IDEA Plugin)**   | Autocompletado y sugerencias en tiempo real en el IDE            |
 
-- "Generate a Spring Boot project with Gradle for a product comparison API using a JSON file instead of a database."
-- "Include REST endpoints for `/api/products` and `/api/products/{id}`."
-- "Add basic error handling and inline comments explaining the logic."
-- "Create a JSON file with realistic test data for at least 10 products."
+---
 
-## Refactoring & Feature Prompts
+## 🏗️ Generación Inicial del Proyecto
 
-- "Refactor the project to use a hexagonal architecture. Create interfaces for services and repositories."
-- "Apply SOLID principles throughout the code, especially Dependency Inversion."
-- "Use dependency injection for all components."
-- "Add more services for filtering products by price, rating, and category."
-- "Implement a global exception handler to provide consistent JSON error responses for all controllers."
-- "Add Swagger (SpringDoc) for API documentation."
-- "Create all the tests for the controller, model, repository, and service folders."
+- **Prompt:**  
+  > Crea un proyecto Spring Boot utilizando Gradle que implemente una API REST para comparar productos. El almacenamiento de los productos debe realizarse en un archivo JSON local en vez de una base de datos tradicional. Asegúrate de incluir endpoints REST para `/api/products` (listado y creación de productos) y `/api/products/{id}` (consulta, actualización y eliminación de un producto específico). Incluye manejo básico de errores y comentarios en línea explicando la lógica de cada método. Genera un archivo JSON de ejemplo con al menos 10 productos realistas, cada uno con nombre, descripción, precio, categoría y calificación.
 
-## Authentication and Security
+---
 
-- "Implement JWT for authentication in the products API."
-- "Configure Spring Security to protect endpoints with token-based authentication."
-- "Create endpoints for user login and registration that return JWT tokens."
-- "Add roles and permissions for different user types (admin, user)."
+## 🧩 Refactorización & Arquitectura
 
-## Testing
+- **Prompt:**  
+  > Refactoriza el proyecto para adoptar una arquitectura hexagonal (puertos y adaptadores). Crea interfaces para los servicios y repositorios, separando claramente la lógica de negocio del acceso a datos y la exposición vía controladores REST. Aplica los principios SOLID, especialmente el de Inversión de Dependencias, utilizando inyección de dependencias para todos los componentes. Añade servicios adicionales que permitan filtrar productos por precio, calificación y categoría. Implementa un manejador global de excepciones que devuelva respuestas de error en formato JSON consistente para todos los controladores. Integra Swagger (SpringDoc) para documentar automáticamente la API REST.
 
-### Unit Tests
+---
 
-- "Create unit tests for each service using JUnit 5 and Mockito."
-- "Implement tests for ProductRepository methods using mocks."
-- "Write tests for validation classes and custom exceptions."
+## 🔐 Autenticación y Seguridad
 
-### Integration Tests
+- **Prompt:**  
+  > Implementa autenticación basada en JWT en la API de productos. Configura Spring Security para proteger todos los endpoints, permitiendo el acceso solo a usuarios autenticados mediante tokens JWT válidos. Crea endpoints para registro y login de usuarios, devolviendo el token JWT correspondiente tras la autenticación. Añade roles y permisos diferenciados para usuarios tipo 'admin' y 'user', restringiendo ciertas operaciones (como creación, actualización y eliminación de productos) solo a administradores.
 
-- "Develop integration tests for REST endpoints using MockMvc."
-- "Implement tests to verify repository behavior with real data."
-- "Create tests that verify integration between services and controllers."
+---
 
-### Acceptance Tests
+## 🧪 Pruebas
 
-- "Implement acceptance tests with Cucumber to validate complete API flows."
-- "Create Gherkin scenarios for the main functionalities of the product comparison tool."
-- "Add end-to-end tests that simulate real user behavior."
+### Pruebas Unitarias
 
-## Data Mapping and Transformation
+- **Prompt:**  
+  > Genera pruebas unitarias para cada servicio utilizando JUnit 5 y Mockito, asegurando la cobertura de todos los casos de uso principales. Implementa pruebas para los métodos del repositorio de productos utilizando mocks. Escribe pruebas para las clases de validación y excepciones personalizadas, verificando que se lancen los errores correctos ante entradas inválidas.
 
-- "Create mappers using MapStruct to convert between entities, DTOs, and response models."
-- "Implement custom validations in DTOs using Bean Validation."
-- "Add support for pagination and sorting in endpoints that return product lists."
+### Pruebas de Integración
 
-## Additional CRUD Operations
+- **Prompt:**  
+  > Desarrolla pruebas de integración para los endpoints REST utilizando MockMvc, cubriendo los flujos principales de la API. Implementa pruebas que verifiquen el comportamiento del repositorio con datos reales del archivo JSON. Crea pruebas que validen la integración entre servicios y controladores, asegurando que la lógica de negocio y la exposición REST funcionen correctamente en conjunto.
 
-- "Implement PUT endpoints to update product information."
-- "Create PATCH operations for partial resource updates."
-- "Add support for logical deletion (soft delete) of products."
+### Pruebas de Aceptación
 
-## Data and Content Generation
+- **Prompt:**  
+  > Implementa pruebas de aceptación con Cucumber para validar los flujos completos de la API de comparación de productos. Escribe escenarios en Gherkin que cubran las funcionalidades principales, como registro de usuario, autenticación, consulta, filtrado y comparación de productos. Añade pruebas end-to-end que simulen el comportamiento real de un usuario interactuando con la API.
 
-- "Use 'dev.langchain4j:langchain4j:0.33.0' library to generate realistic random product data."
-- "Create a script that generates a JSON file with 100 products with varied categories, prices, and descriptions."
-- "Implement a detailed description generator for products using LLMs."
+---
 
-## Additional Documentation
+## 🔄 Mapeo y Transformación de Datos
 
-- "Create technical documentation explaining JWT implementation and security."
-- "Generate architecture diagrams using PlantUML to visualize the hexagonal structure."
-- "Document all available endpoints with request/response examples in Markdown format."
-- "Add a step-by-step tutorial on how to consume the API from different clients (curl, Postman, JavaScript)."
+- **Prompt:**  
+  > Crea mapeadores utilizando MapStruct para convertir entre entidades, DTOs y modelos de respuesta. Implementa validaciones personalizadas en los DTOs utilizando Bean Validation (anotaciones como @NotNull, @Size, etc.). Añade soporte para paginación y ordenamiento en los endpoints que devuelven listas de productos, permitiendo filtrar y ordenar por diferentes atributos.
 
-## Documentation Prompts
+---
 
-- "Update the `README.md` to include a description of the architecture, design patterns used, and a link to the Swagger
-  documentation."
-- "Update `prompts.md` with the latest prompts used from our conversation history and mention the AI tools used."
-- "Create a `run.md` file with all the necessary steps to build, test, and run this project."
+## 📝 Operaciones CRUD Adicionales
+
+- **Prompt:**  
+  > Implementa endpoints PUT para actualizar la información completa de un producto. Crea operaciones PATCH para actualizaciones parciales de recursos. Añade soporte para eliminación lógica (soft delete) de productos, marcando los productos como inactivos en vez de eliminarlos físicamente del archivo JSON.
+
+---
+
+## 🧬 Generación de Datos y Contenido
+
+- **Prompt:**  
+  > Utiliza la librería `dev.langchain4j:langchain4j:0.33.0` para generar datos de productos aleatorios y realistas. Crea un script que genere un archivo JSON con 100 productos variados en categorías, precios y descripciones. Implementa un generador de descripciones detalladas para productos utilizando modelos de lenguaje (LLMs), asegurando que cada producto tenga una descripción única y convincente.
+
+---
+
+## 📚 Documentación
+
+- **Prompt:**  
+  > Crea documentación técnica detallada que explique la implementación de JWT y la configuración de seguridad en la API. Genera diagramas de arquitectura utilizando PlantUML para visualizar la estructura hexagonal del proyecto. Documenta todos los endpoints disponibles, incluyendo ejemplos de solicitudes y respuestas en formato Markdown. Añade un tutorial paso a paso sobre cómo consumir la API desde diferentes clientes (curl, Postman, JavaScript).
+
+---
+
+## 📝 Actualización de Documentación
+
+- **Prompt:**  
+  > Actualiza el archivo `README.md` para incluir una descripción de la arquitectura, los patrones de diseño utilizados y un enlace a la documentación Swagger. Mantén actualizado el archivo `prompts.md` con los últimos prompts utilizados y menciona las herramientas de IA empleadas. Crea un archivo `run.md` con todos los pasos necesarios para compilar, probar y ejecutar el proyecto desde cero.
+
+---
+
+> _Última actualización: 2025-10-19

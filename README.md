@@ -1,13 +1,26 @@
 # 🛍️ Product Comparison API
 
+
 > **RESTful API for product comparison with JWT Authentication, AI-powered data generation, and comprehensive CRUD operations**
 
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+---
+**Autor:** Duvan Gianinni Peñaloza Pinzon  
+**Correo:** dgpenalozap@gmail.com
 
 ---
+
+## 📦 Recursos Rápidos
+
+- [prompts.md](./prompts.md) — Ejemplos de prompts y casos de uso IA
+- [run.md](./run.md) — Guía rápida para correr el proyecto
+- [Repositorio del proyecto](https://github.com/dgpenalozap/MeLiPrueba)
+
+---
+
 
 ## 📋 Tabla de Contenidos
 
@@ -77,7 +90,10 @@ Incluye **45 productos** pre-cargados distribuidos en **13 categorías**:
 - ✅ **MapStruct** para mapeo de objetos
 - ✅ **Bean Validation** para validación declarativa
 - ✅ **Tests Unitarios** con JUnit 5 y Mockito
+- ✅ **Pruebas de Integración** para verificar el funcionamiento entre componentes
+- ✅ **Pruebas de Aceptación** para validar requisitos funcionales completos
 - ✅ **Documentación Swagger/OpenAPI** interactiva
+- ✅ **Uso de Docker** para despliegue y portabilidad
 
 ---
 
@@ -236,7 +252,7 @@ Incluye **45 productos** pre-cargados distribuidos en **13 categorías**:
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/dgpenalozap/MeLiPrueba.git
 cd product-comparison-java-gradle
 ```
 
@@ -1187,7 +1203,7 @@ Las contribuciones son bienvenidas. Por favor:
 ## 📞 Contacto
 
 - **Email**: dgpenalozap@gmail.com
-- **GitHub**: [Tu GitHub](https://github.com/tu-usuario)
+- **GitHub**: [Tu GitHub](https://github.com/dgpenalozap)
 
 ---
 
