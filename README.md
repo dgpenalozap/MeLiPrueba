@@ -13,10 +13,17 @@
 
 ---
 
-## 📦 Recursos Rápidos
+## 🚀 Inicio Rápido
+
+**Para ejecutar el proyecto, consulta la guía detallada:** [run.md](./run.md)
+
+**Documentación interactiva (Swagger UI):** http://localhost:8080/swagger-ui.html
+
+---
+
+## 📦 Recursos Adicionales
 
 - [prompts.md](./prompts.md) — Ejemplos de prompts y casos de uso IA
-- [run.md](./run.md) — Guía rápida para correr el proyecto
 - [Repositorio del proyecto](https://github.com/dgpenalozap/MeLiPrueba)
 
 ---
@@ -28,7 +35,6 @@
 - [Características Principales](#-características-principales)
 - [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 - [Arquitectura](#️-arquitectura)
-- [Inicio Rápido](#-inicio-rápido)
 - [Configuración](#️-configuración)
 - [Autenticación y Seguridad](#-autenticación-y-seguridad)
 - [API Endpoints](#-api-endpoints)
@@ -238,49 +244,6 @@ Incluye **45 productos** pre-cargados distribuidos en **13 categorías**:
 - `JwtAuthenticationFilter`: Intercepta requests y valida JWT
 - `JwtUtil`: Genera y valida tokens JWT
 - `UserConfig`: Carga usuarios desde properties
-
----
-
-## 🚀 Inicio Rápido
-
-### Prerrequisitos
-
-- **Java 17** o superior
-- **Gradle 8.x** (incluido en el proyecto)
-- **IDE** (IntelliJ IDEA, Eclipse, VS Code)
-
-### 1. Clonar el Repositorio
-
-```bash
-git clone https://github.com/dgpenalozap/MeLiPrueba.git
-cd product-comparison-java-gradle
-```
-
-### 2. Compilar el Proyecto
-
-```bash
-# Windows
-.\gradlew.bat clean build
-
-# Linux/Mac
-./gradlew clean build
-```
-
-### 3. Ejecutar la Aplicación
-
-```bash
-# Windows
-.\gradlew.bat bootRun
-
-# Linux/Mac
-./gradlew bootRun
-```
-
-### 4. Verificar que Funciona
-
-Abre tu navegador en:
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **API Products**: http://localhost:8080/api/products (requiere autenticación)
 
 ---
 

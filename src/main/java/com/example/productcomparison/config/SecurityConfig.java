@@ -40,10 +40,12 @@ public class SecurityConfig {
                 
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
+
                         // Public endpoints
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         
                         // GET endpoints - accessible by both ADMIN and USER
                         .requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")

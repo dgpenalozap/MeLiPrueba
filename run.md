@@ -1,132 +1,218 @@
-# How to Run This Project
+# 🚀 Cómo Ejecutar Este Proyecto
 
-Follow these steps to build, test, and run the application.
+Sigue estos pasos para construir, probar y ejecutar la aplicación.
 
-## Requirements
+---
 
-- **Java 17** or higher.
-- **Gradle** (Optional, as you can use the provided Gradle Wrapper).
-- **Docker** (Optional, for running with Docker).
+## 📋 Requisitos Previos
 
-## Option 1: Run Locally with Gradle
+- **Java 17** o superior
+- **Gradle** (Opcional, puedes usar el Gradle Wrapper incluido)
+- **Docker** (Opcional, para ejecutar con Docker)
+- **Git** (para clonar el repositorio)
 
-### 1. Clone or Download the Project
+---
 
-Unzip the project folder if you have downloaded it as a ZIP file.
+## 📥 Opción 1: Ejecutar Localmente con Gradle
 
-### 2. Build the Application
+### 1. Obtener el Proyecto
 
-Open a terminal or command prompt in the project's root directory and run the following command to compile the code and build the project. This will also download all necessary dependencies.
+Tienes dos opciones para obtener el proyecto:
 
-**On macOS/Linux:**
+#### Opción A: Clonar desde GitHub (Recomendado)
+
+Clona el repositorio desde GitHub usando Git:
+
+```bash
+git clone https://github.com/dgpenalozap/MeLiPrueba.git
+cd MeLiPrueba
+```
+
+#### Opción B: Descargar como archivo comprimido
+
+Si tienes el proyecto como archivo `.zip` o `.rar`:
+
+1. **Para archivos .zip:**
+   - En Windows: Click derecho → "Extraer aquí" o "Extract Here"
+   - En macOS: Doble click en el archivo
+   - En Linux: `unzip MeLiPrueba.zip`
+
+2. **Para archivos .rar:**
+   - Necesitarás WinRAR, 7-Zip o una herramienta similar
+   - En Windows: Click derecho → "Extraer aquí"
+   - En Linux: `unrar x MeLiPrueba.rar` o `7z x MeLiPrueba.rar`
+
+3. **Navega al directorio extraído:**
+   ```bash
+   cd MeLiPrueba
+   ```
+
+### 2. Construir la Aplicación
+
+Abre una terminal o símbolo del sistema en el directorio raíz del proyecto y ejecuta el siguiente comando para compilar el código y construir el proyecto. Esto también descargará todas las dependencias necesarias.
+
+**En macOS/Linux:**
 ```bash
 ./gradlew clean build
 ```
 
-**On Windows:**
+**En Windows:**
 ```bash
 gradlew.bat clean build
 ```
 
-### 3. Run the Tests
+### 3. Ejecutar las Pruebas
 
-To ensure everything is working correctly, run the unit tests:
+Para asegurarte de que todo funciona correctamente, ejecuta las pruebas unitarias:
 
-**On macOS/Linux:**
+**En macOS/Linux:**
 ```bash
 ./gradlew test
 ```
 
-**On Windows:**
+**En Windows:**
 ```bash
 gradlew.bat test
 ```
 
-You should see a `BUILD SUCCESSFUL` message, indicating that all 8 tests have passed.
+Deberías ver un mensaje `BUILD SUCCESSFUL`, indicando que todas las 8 pruebas han pasado exitosamente.
 
-### 4. Run the Application
+### 4. Ejecutar la Aplicación
 
-Once the project is built and tested, you can start the application with the `bootRun` command.
+Una vez que el proyecto esté construido y probado, puedes iniciar la aplicación con el comando `bootRun`.
 
-**On macOS/Linux:**
+**En macOS/Linux:**
 ```bash
 ./gradlew bootRun
 ```
 
-**On Windows:**
+**En Windows:**
 ```bash
 gradlew.bat bootRun
 ```
 
-The application will start on the embedded Tomcat server, typically on port 8080.
+La aplicación se iniciará en el servidor Tomcat embebido, típicamente en el puerto 8080.
 
-## Option 2: Run with Docker
+---
 
-### 1. Build the Docker Image
+## 🐳 Opción 2: Ejecutar con Docker
 
-From the project's root directory, build the Docker image:
+### 1. Construir la Imagen de Docker
+
+Desde el directorio raíz del proyecto, construye la imagen de Docker:
 
 ```bash
 docker build -t product-comparison-app .
 ```
 
-### 2. Run the Docker Container
+### 2. Ejecutar el Contenedor de Docker
 
-Run the application in a Docker container:
+Ejecuta la aplicación en un contenedor de Docker:
 
 ```bash
 docker run -p 8080:8080 product-comparison-app
 ```
 
-**With environment variables (optional):**
+**Con variables de entorno (opcional):**
 ```bash
 docker run -p 8080:8080 \
   -e SPRING_PROFILES_ACTIVE=prod \
-  -e OPENAI_API_KEY=your_api_key_here \
+  -e OPENAI_API_KEY=tu_api_key_aqui \
   product-comparison-app
 ```
 
-**Run in detached mode:**
+**Ejecutar en modo desacoplado:**
 ```bash
 docker run -d -p 8080:8080 --name product-comparison product-comparison-app
 ```
 
-### 3. Docker Commands
+### 3. Comandos Útiles de Docker
 
-**View logs:**
+**Ver logs:**
 ```bash
 docker logs product-comparison
 ```
 
-**Follow logs:**
+**Seguir logs en tiempo real:**
 ```bash
 docker logs -f product-comparison
 ```
 
-**Stop the container:**
+**Detener el contenedor:**
 ```bash
 docker stop product-comparison
 ```
 
-**Remove the container:**
+**Eliminar el contenedor:**
 ```bash
 docker rm product-comparison
 ```
 
-**Remove the image:**
+**Eliminar la imagen:**
 ```bash
 docker rmi product-comparison-app
 ```
 
-## Access the API
+---
 
-Once the application is running (locally or in Docker), you can access the following URLs:
+## 🌐 Acceder a la API
 
-- **Main API Endpoint:**
-  [http://localhost:8080/api/products](http://localhost:8080/api/products)
+Una vez que la aplicación esté ejecutándose (localmente o en Docker), puedes acceder a las siguientes URLs:
 
-- **Swagger UI for Interactive Documentation:**
-  [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+### Endpoints Principales
 
-- **Health Check (if actuator is enabled):**
-  [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+| Descripción | URL |
+|-------------|-----|
+| **Endpoint Principal de la API** | [http://localhost:8080/api/products](http://localhost:8080/api/products) |
+| **Documentación Interactiva (Swagger UI)** | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) |
+| **Health Check (si actuator está habilitado)** | [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health) |
+
+---
+
+## 🎯 Resumen de Comandos Rápidos
+
+### Ejecución Local
+```bash
+# Clonar repositorio
+git clone https://github.com/dgpenalozap/MeLiPrueba.git
+cd MeLiPrueba
+
+# Construir y ejecutar (Linux/Mac)
+./gradlew clean build
+./gradlew test
+./gradlew bootRun
+
+# Construir y ejecutar (Windows)
+gradlew.bat clean build
+gradlew.bat test
+gradlew.bat bootRun
+```
+
+### Ejecución con Docker
+```bash
+# Construir imagen
+docker build -t product-comparison-app .
+
+# Ejecutar contenedor
+docker run -p 8080:8080 product-comparison-app
+```
+
+---
+
+## ❓ Solución de Problemas
+
+- **Error de Java:** Verifica que tienes Java 17 o superior instalado: `java -version`
+- **Puerto ocupado:** Si el puerto 8080 está en uso, puedes cambiarlo con `-Dserver.port=8081` al ejecutar
+- **Problemas con Gradle:** Asegúrate de tener permisos de ejecución en `gradlew`: `chmod +x gradlew`
+
+---
+
+## 📝 Notas Adicionales
+
+- La primera ejecución puede tardar más tiempo debido a la descarga de dependencias
+- Los logs de la aplicación se mostrarán en la consola durante la ejecución
+- Para detener la aplicación, presiona `Ctrl + C` en la terminal
+
+---
+
+**¡Listo! Tu aplicación debería estar ejecutándose exitosamente.** 🎉
