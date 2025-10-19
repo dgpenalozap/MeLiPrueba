@@ -2,24 +2,32 @@
 
 Este documento recopila los prompts y herramientas de IA empleadas para la generación, refactorización y documentación de este proyecto.
 
-## ⚙️ Integración de GenAI y Herramientas Modernas de Desarrollo
+## 🤖 GenAI y Herramientas Modernas de Desarrollo
 
-La combinación de herramientas GenAI y flujos modernos incrementa productividad, calidad y velocidad de entrega en el proyecto:
+La integración de GenAI y herramientas modernas como Copilot y Gemini CLI potencia el desarrollo en varias dimensiones:
 
-\- Contexto ampliado: El uso de CLI (Copilot, Gemini) proporciona mayor comprensión del estado global del código, permitiendo generar documentación precisa y coherente.  
-\- Modificaciones ágiles: Las herramientas pueden proponer y aplicar cambios en cualquier parte del código de forma rápida, reduciendo tiempo de refactorización.  
-\- Generación acelerada: Copilot facilita creación y corrección de métodos, clases y controladores con alta velocidad, manteniendo convenciones del proyecto.  
-\- Interacción instantánea: Consultas en chat sobre dudas técnicas disminuyen tiempos de investigación y desbloquean decisiones arquitectónicas.  
-\- Pruebas automatizadas: Unitarias, integración y aceptación se generan rápidamente a partir de prompts bien definidos, acelerando cobertura y validación funcional.  
-\- Confiabilidad condicionada: Aunque el código generado suele ser consistente, siempre se revisa manualmente para evitar errores, vulnerabilidades o incoherencias lógicas.  
-\- Evolución continua: La iteración asistida por IA permite incorporar nuevas funcionalidades sin comprometer estructura hexagonal ni principios SOLID.  
-\- Documentación viva: Actualizaciones frecuentes de archivos de guía y uso (README, prompts) se realizan con soporte de generación automática, manteniendo alineada la evolución del sistema.  
-\- Optimización del tiempo: Se reduce esfuerzo repetitivo y se prioriza análisis de negocio y diseño arquitectónico.  
-\- Buenas prácticas reforzadas: La IA sugiere patrones, validaciones y mejoras de seguridad (p.ej. manejo de JWT y sanitización), elevando el estándar base del código.  
+- **Contexto enriquecido:**  
+  El uso de CLI (Copilot, Gemini) permite a las herramientas comprender el proyecto completo, generando documentación precisa y relevante.
 
-> Nota: Todo artefacto generado por GenAI se somete a revisión para garantizar mantenibilidad, seguridad y alineación con los objetivos del dominio.
----
+- **Cambios globales:**  
+  Estas herramientas pueden modificar cualquier parte del código, facilitando la incorporación de nuevas funcionalidades o refactorizaciones rápidas.
 
+- **Generación y corrección ágil:**  
+  Copilot acelera la creación y corrección de código, permitiendo resolver tareas repetitivas o complejas en segundos.
+
+- **Consultas instantáneas:**  
+  Interactuar con un chat para resolver dudas técnicas incrementa la productividad y reduce tiempos de bloqueo.
+
+- **Pruebas automatizadas:**  
+  La generación de pruebas unitarias, de integración y aceptación es sencilla; basta con definir el tipo de prueba y dar un prompt claro para obtener código confiable.
+
+- **Revisión obligatoria:**  
+  Todo el código generado se revisa manualmente para evitar errores, bugs o vulnerabilidades.
+
+- **Personalización:**  
+  Es posible ajustar los prompts para obtener pruebas o código adaptado a necesidades específicas del proyecto.
+
+> Nota: La integración de GenAI no reemplaza la revisión humana, pero sí optimiza el flujo de trabajo y eleva la calidad del software.
 ## 🛠️ Herramientas de IA Utilizadas
 
 | Herramienta                                 | Propósito principal                                              |
